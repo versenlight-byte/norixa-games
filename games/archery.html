@@ -237,6 +237,7 @@
 
   function newGame(){
     score = 0; arrows = 5; dir = 1; speed = 90; popup = null;
+    animating = false;
     targetX = 80;
     scoreEl.textContent = '0';
     arrowsLeftEl.textContent = arrows;
@@ -346,6 +347,7 @@
         fadePopup();
         speed += 18;
         if(arrows <= 0){
+          animating = false;
           setTimeout(endGame, 500);
         } else {
           animating = false;

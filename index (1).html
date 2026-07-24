@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Norixa - 1~3분 미니게임 모음</title>
+<meta name="google-site-verification" content="TS85KiwP1vykzFYAmztLI7epu03x22MhnJfTsm-VPwI" />
+<meta name="description" content="심심할 때 한 판씩, 1~3분이면 끝나는 무료 미니게임 모음. 숫자 맞추기, 반응속도, 2048, 카드 짝맞추기.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Norixa">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(18px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  }
+  .wrap{ width:100%; max-width:460px; display:flex; flex-direction:column; gap:16px; }
+  header{ text-align:center; padding: 10px 0 4px; }
+  h1{
+    font-family:'Do Hyeon', sans-serif; font-size:32px; margin:0; letter-spacing:1px;
+    background: linear-gradient(90deg, var(--teal), var(--amber) 55%, var(--coral));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:13.5px; }
+
+  .ad-slot{
+    width:100%; min-height:60px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:12px; background:rgba(245,240,234,0.03);
+  }
+
+  .game-grid{ display:grid; grid-template-columns:1fr; gap:12px; }
+  .game-card{
+    display:flex; align-items:center; gap:14px; position:relative;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border:1px solid var(--line); border-radius:18px; padding:16px;
+    text-decoration:none; color:var(--ink);
+    box-shadow: var(--shadow);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    opacity:0; animation: cardIn .4s ease forwards;
+  }
+  .game-card:nth-child(1){ animation-delay: .02s; } .game-card:nth-child(2){ animation-delay: .06s; }
+  .game-card:nth-child(3){ animation-delay: .10s; } .game-card:nth-child(4){ animation-delay: .14s; }
+  .game-card:nth-child(5){ animation-delay: .18s; } .game-card:nth-child(6){ animation-delay: .22s; }
+  .game-card:nth-child(7){ animation-delay: .26s; } .game-card:nth-child(8){ animation-delay: .30s; }
+  .game-card:nth-child(9){ animation-delay: .34s; } .game-card:nth-child(10){ animation-delay: .38s; }
+  .game-card:nth-child(11){ animation-delay: .42s; } .game-card:nth-child(12){ animation-delay: .46s; }
+  .game-card:nth-child(13){ animation-delay: .50s; }
+  @keyframes cardIn{ 0%{ opacity:0; transform:translateY(10px); } 100%{ opacity:1; transform:translateY(0); } }
+  .game-card:hover{ transform: translateY(-3px); box-shadow: 0 24px 55px rgba(0,0,0,0.5); border-color: rgba(45,212,191,0.35); }
+  .game-card:hover .g-icon{ transform: scale(1.08) rotate(-4deg); }
+  .game-card:active{ transform: scale(0.97); }
+  .g-badge{
+    position:absolute; top:-7px; right:12px; font-size:10px; font-weight:900;
+    padding:3px 8px; border-radius:8px; font-family:'Noto Sans KR', sans-serif;
+    letter-spacing:0.3px; box-shadow:0 3px 8px rgba(0,0,0,0.35);
+  }
+  .g-badge.new{ background: linear-gradient(135deg, var(--coral), var(--amber)); color:#1B1030; }
+  .g-badge.hot{ background: linear-gradient(135deg, var(--teal), #1f9c8e); color:#0d2b28; }
+  .g-icon{
+    flex:0 0 52px; height:52px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; transition: transform .2s ease;
+  }
+  .g-icon.up{ background: linear-gradient(135deg, var(--teal), var(--amber)); }
+  .g-icon.click{ background: linear-gradient(135deg, var(--coral), var(--amber)); }
+  .g-icon.puzzle{ background: linear-gradient(135deg, #8B7CF6, var(--teal)); }
+  .g-icon.memory{ background: linear-gradient(135deg, var(--amber), var(--coral)); }
+  .g-icon.mono{ background: linear-gradient(135deg, #6b6b6b, #dcdcdc); }
+  .g-icon.mine{ background: linear-gradient(135deg, var(--coral), #FF9770); }
+  .g-icon.armor{ background: linear-gradient(135deg, var(--amber), var(--coral)); }
+  .g-info{ flex:1; min-width:0; }
+  .g-info b{ font-family:'Do Hyeon', sans-serif; font-size:18px; display:block; }
+  .g-info span{ font-size:12.5px; color:var(--muted); }
+  .g-time{
+    flex:0 0 auto; font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--muted); background:rgba(245,240,234,0.06); padding:4px 8px; border-radius:8px;
+  }
+  @media (prefers-reduced-motion: reduce){ .game-card{ animation:none; opacity:1; } }
+
+  footer{
+    display:flex; justify-content:center; gap:18px; flex-wrap:wrap;
+    margin-top:6px; padding-top:14px; border-top:1px solid var(--line);
+  }
+  footer a{ color:var(--muted); font-size:12.5px; text-decoration:none; }
+  footer a:hover{ color:var(--ink); }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo-header.png" alt="Norixa" style="max-width:240px; width:70%; height:auto; margin:0 auto; display:block;">
+    <p>1~3분이면 끝나는 무료 미니게임 모음</p>
+  </header>
+
+  <!-- 광고 영역: 메인 상단 -->
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <button id="installBtn" style="display:none; width:100%; padding:12px; border:none; border-radius:12px; background:linear-gradient(90deg,var(--teal),var(--amber)); color:#1B1035; font-family:'Do Hyeon',sans-serif; font-size:15px; letter-spacing:0.5px;">
+    📲 홈 화면에 추가하고 바로 플레이하기
+  </button>
+
+  <div class="game-grid">
+    <a class="game-card" href="games/updown.html">
+      <div class="g-icon up">🎯</div>
+      <div class="g-info"><b>업다운 챌린지</b><span>1~100 숫자 맞추기 · 게이지로 힌트 확인</span></div>
+      <div class="g-time">~90초</div>
+    </a>
+    <a class="game-card" href="games/click.html">
+      <span class="g-badge hot">인기</span>
+      <div class="g-icon click">⚡</div>
+      <div class="g-info"><b>반응속도 테스트</b><span>신호가 뜨면 최대한 빠르게 탭!</span></div>
+      <div class="g-time">~1분</div>
+    </a>
+    <a class="game-card" href="games/puzzle.html">
+      <span class="g-badge hot">인기</span>
+      <div class="g-icon puzzle">🧩</div>
+      <div class="g-info"><b>2048</b><span>같은 숫자 타일을 합쳐 2048을 만들어보세요</span></div>
+      <div class="g-time">~3분</div>
+    </a>
+    <a class="game-card" href="games/memory.html">
+      <div class="g-icon memory">🃏</div>
+      <div class="g-info"><b>카드 짝맞추기</b><span>같은 그림 카드를 최소 횟수로 찾아보세요</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/blocks.html">
+      <div class="g-icon puzzle">🧱</div>
+      <div class="g-info"><b>블록 챌린지</b><span>떨어지는 블록을 쌓아 줄을 없애보세요</span></div>
+      <div class="g-time">~3분</div>
+    </a>
+    <a class="game-card" href="games/breakout.html">
+      <div class="g-icon click">💥</div>
+      <div class="g-info"><b>벽돌 깨기</b><span>공을 튕겨서 벽돌을 시원하게 부숴보세요</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/wordchain.html">
+      <div class="g-icon up">🗣️</div>
+      <div class="g-info"><b>끝말잇기</b><span>AI와 끝말잇기 대결, 15초 안에 입력하세요</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/proverb.html">
+      <div class="g-icon memory">📜</div>
+      <div class="g-info"><b>속담 맞추기</b><span>속담의 뒷부분을 맞히는 사지선다 퀴즈</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/crossword.html">
+      <div class="g-icon puzzle">📝</div>
+      <div class="g-info"><b>십자말풀이</b><span>가로세로 빈칸에 알맞은 낱말 채우기</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/archery.html">
+      <div class="g-icon click">🏹</div>
+      <div class="g-info"><b>양궁 챌린지</b><span>움직이는 과녁에 타이밍 맞춰 화살 쏘기</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/omok.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon mono">⚫</div>
+      <div class="g-info"><b>오목</b><span>AI를 상대로 먼저 5개를 연결하면 승리</span></div>
+      <div class="g-time">~3분</div>
+    </a>
+    <a class="game-card" href="games/minesweeper.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon mine">💣</div>
+      <div class="g-info"><b>지뢰찾기</b><span>지뢰 10개를 피해 모든 칸을 열어보세요</span></div>
+      <div class="g-time">~3분</div>
+    </a>
+    <a class="game-card" href="games/armor.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon armor">⚔️</div>
+      <div class="g-info"><b>전신갑주</b><span>갑주 6개를 갖추고 화살 웨이브를 버텨내세요</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+  </div>
+
+  <!-- 광고 영역: 메인 하단 -->
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <footer>
+    <a href="about.html">소개</a>
+    <a href="privacy.html">개인정보처리방침</a>
+    <a href="contact.html">문의</a>
+  </footer>
+</div>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+  });
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.style.display = 'none';
+  });
+  window.addEventListener('appinstalled', () => {
+    installBtn.style.display = 'none';
+  });
+</script>
+</body>
+</html>

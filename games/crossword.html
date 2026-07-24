@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>십자말풀이 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="가로세로 빈칸을 채우는 미니 십자말풀이 게임.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5727459571536294"
+     crossorigin="anonymous"></script>
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B; --purple:#8B7CF6;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+  }
+  .wrap{ width:100%; max-width:420px; display:flex; flex-direction:column; gap:12px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:28px; margin:4px 0 0;
+      background: linear-gradient(90deg, var(--purple), var(--teal));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:4px 0 0; color:var(--muted); font-size:12.5px; }
+
+  .ad-slot{
+    width:100%; min-height:50px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:11px; background:rgba(245,240,234,0.03);
+  }
+
+  .statbar{ display:flex; justify-content:space-between; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); }
+  .statbar b{ color:var(--ink); }
+
+  .grid-wrap{ display:flex; justify-content:center; padding:6px 0; }
+  .grid{ display:grid; gap:6px; }
+  .cell{
+    position:relative; width:56px; height:56px;
+    background: rgba(245,240,234,0.06); border:1.5px solid var(--line); border-radius:10px;
+  }
+  .cell input{
+    width:100%; height:100%; border:none; background:none; outline:none;
+    text-align:center; font-size:22px; font-weight:700; color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif; border-radius:10px;
+  }
+  .cell.correct{ border-color: var(--teal); background: rgba(45,212,191,0.16); }
+  .cell.wrong{ border-color: var(--coral); background: rgba(255,107,74,0.14); }
+  .cell .num{
+    position:absolute; top:2px; left:5px; font-size:10px; color:var(--muted);
+    font-family:'JetBrains Mono', monospace; pointer-events:none;
+  }
+
+  .clues{ display:flex; flex-direction:column; gap:10px; }
+  .clue-group{
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border:1px solid var(--line); border-radius:14px; padding:12px 14px;
+  }
+  .clue-group h3{ margin:0 0 8px; font-family:'Do Hyeon', sans-serif; font-size:15px; color:var(--amber); }
+  .clue-group div{ font-size:13px; line-height:1.6; color:var(--ink); }
+  .clue-group b{ color:var(--teal); font-family:'JetBrains Mono', monospace; margin-right:4px; }
+
+  .btn-row{ display:flex; gap:8px; }
+  button{ font-family:'Noto Sans KR', sans-serif; border:none; cursor:pointer; border-radius:12px; }
+  .btn-check{ flex:1; padding:14px; background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030; font-weight:900; font-size:15px; }
+  .btn-next{ flex:1; padding:14px; background: rgba(245,240,234,0.08); border:1px solid var(--line); color:var(--muted); font-size:13.5px; }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:340px; background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line); padding:26px 22px 22px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease; box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:40px; margin-bottom:4px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:24px; margin:4px 0 10px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13px; margin-bottom:4px; }
+  .btn-retry{ margin-top:18px; width:100%; padding:14px; background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030; font-weight:900; font-size:15px; }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1>십자말풀이</h1>
+    <p>가로·세로 빈칸에 알맞은 낱말을 채워보세요</p>
+  </header>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-5727459571536294"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="statbar">
+    <span>시간 <b id="timer">0:00</b></span>
+    <span>퍼즐 <b id="puzzleNum">1</b>/<span id="puzzleTotal">2</span></span>
+    <span>최고 기록 <b id="best">-</b></span>
+  </div>
+
+  <div class="grid-wrap"><div class="grid" id="grid"></div></div>
+
+  <div class="clues" id="clues"></div>
+
+  <div class="btn-row">
+    <button class="btn-check" id="checkBtn">확인</button>
+    <button class="btn-next" id="nextBtn">다른 퍼즐</button>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-5727459571536294"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="archery.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🏹<br><span style="font-size:11.5px;">양궁 챌린지</span></a><a href="updown.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🎯<br><span style="font-size:11.5px;">업다운 챌린지</span></a><a href="blocks.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🧱<br><span style="font-size:11.5px;">블록 챌린지</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji">🎉</div>
+    <h2>정답입니다!</h2>
+    <div class="result-line" id="modalTime">00:00</div>
+    <button class="btn-retry" id="retryBtn">다른 퍼즐 풀기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const PUZZLES = [
+    {
+      rows:2, cols:3,
+      cells: [['호','랑','이'],['수','박','불']],
+      words: [
+        { dir:'across', row:0, col:0, len:3, clue:'숲속의 왕이라 불리는 줄무늬 큰 고양이과 동물', answer:'호랑이' },
+        { dir:'down',   row:0, col:0, len:2, clue:'산이나 들 가운데 크고 깊게 물이 괸 곳', answer:'호수' },
+        { dir:'across', row:1, col:0, len:2, clue:'여름에 먹는 크고 둥근 초록색 과일, 속은 빨개요', answer:'수박' },
+        { dir:'down',   row:0, col:2, len:2, clue:'잘 때 몸을 덮는 침구', answer:'이불' }
+      ]
+    },
+    {
+      rows:2, cols:3,
+      cells: [['바','나','나'],['다','람','쥐']],
+      words: [
+        { dir:'across', row:0, col:0, len:3, clue:'길쭉하고 노란 껍질을 벗겨 먹는 열대과일, 원숭이가 좋아해요', answer:'바나나' },
+        { dir:'across', row:1, col:0, len:3, clue:'나무를 잘 타는 작은 산속 동물, 도토리를 좋아해요', answer:'다람쥐' },
+        { dir:'down',   row:0, col:0, len:2, clue:'육지가 아닌 넓고 푸른 물, 파도가 치는 곳', answer:'바다' }
+      ]
+    },
+    {
+      rows:2, cols:2,
+      cells: [['나','비'],['사','자']],
+      words: [
+        { dir:'across', row:0, col:0, len:2, clue:'꽃 사이를 팔랑팔랑 날아다니는 화려한 날개의 곤충', answer:'나비' },
+        { dir:'across', row:1, col:0, len:2, clue:'초원의 왕이라 불리는 갈기 달린 동물', answer:'사자' },
+        { dir:'down',   row:0, col:0, len:2, clue:'볼트를 조일 때 돌려서 박는 금속 부품', answer:'나사' },
+        { dir:'down',   row:0, col:1, len:2, clue:'외국에 들어갈 때 여권과 함께 필요한 입국 허가 서류', answer:'비자' }
+      ]
+    },
+    {
+      rows:2, cols:2,
+      cells: [['인','사'],['형','제']],
+      words: [
+        { dir:'across', row:0, col:0, len:2, clue:'만나거나 헤어질 때 예의를 갖춰 나누는 말이나 행동', answer:'인사' },
+        { dir:'across', row:1, col:0, len:2, clue:'형과 아우를 함께 이르는 말', answer:'형제' },
+        { dir:'down',   row:0, col:0, len:2, clue:'사람 모양으로 만들어 아이들이 안고 노는 장난감', answer:'인형' },
+        { dir:'down',   row:0, col:1, len:2, clue:'스승과 제자를 함께 이르는 말', answer:'사제' }
+      ]
+    }
+  ];
+
+  const gridEl = document.getElementById('grid');
+  const cluesEl = document.getElementById('clues');
+  const timerEl = document.getElementById('timer');
+  const puzzleNumEl = document.getElementById('puzzleNum');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+
+  let puzzleIndex = Math.floor(Math.random()*PUZZLES.length), puzzle, inputs, seconds, timerId, solved;
+  document.getElementById('puzzleTotal').textContent = PUZZLES.length;
+
+  function numberPuzzle(p){
+    let num = 1;
+    p.words.forEach(w => w.num = null);
+    for(let r=0;r<p.rows;r++){
+      for(let c=0;c<p.cols;c++){
+        const starts = p.words.filter(w => w.row===r && w.col===c);
+        if(starts.length){
+          starts.forEach(w => w.num = num);
+          num++;
+        }
+      }
+    }
+  }
+
+  function loadBest(){
+    const b = localStorage.getItem('crossword_best_' + puzzleIndex);
+    bestEl.textContent = b ? b + '초' : '-';
+  }
+
+  function formatTime(s){ const m=Math.floor(s/60); const sec=s%60; return m+':'+String(sec).padStart(2,'0'); }
+
+  function buildGrid(){
+    numberPuzzle(puzzle);
+    gridEl.style.gridTemplateColumns = 'repeat(' + puzzle.cols + ', 56px)';
+    gridEl.innerHTML = '';
+    inputs = [];
+    for(let r=0;r<puzzle.rows;r++){
+      inputs.push([]);
+      for(let c=0;c<puzzle.cols;c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const numMatch = puzzle.words.find(w => w.row===r && w.col===c);
+        if(numMatch){
+          const num = document.createElement('div');
+          num.className = 'num';
+          num.textContent = numMatch.num;
+          cell.appendChild(num);
+        }
+        const input = document.createElement('input');
+        input.maxLength = 1;
+        input.addEventListener('input', ()=> { cell.classList.remove('correct','wrong'); });
+        cell.appendChild(input);
+        gridEl.appendChild(cell);
+        inputs[r].push(input);
+      }
+    }
+  }
+
+  function buildClues(){
+    const across = puzzle.words.filter(w => w.dir === 'across').sort((a,b)=>a.num-b.num);
+    const down = puzzle.words.filter(w => w.dir === 'down').sort((a,b)=>a.num-b.num);
+    cluesEl.innerHTML = '';
+    const mk = (title, list) => {
+      const div = document.createElement('div');
+      div.className = 'clue-group';
+      div.innerHTML = '<h3>' + title + '</h3>' + list.map(w => '<div><b>'+w.num+'.</b>'+w.clue+'</div>').join('');
+      cluesEl.appendChild(div);
+    };
+    mk('가로', across);
+    mk('세로', down);
+  }
+
+  function startTimer(){
+    clearInterval(timerId);
+    seconds = 0;
+    timerEl.textContent = '0:00';
+    timerId = setInterval(()=>{ seconds++; timerEl.textContent = formatTime(seconds); }, 1000);
+  }
+
+  function newPuzzle(){
+    puzzle = PUZZLES[puzzleIndex];
+    puzzleNumEl.textContent = puzzleIndex+1;
+    solved = false;
+    overlay.classList.remove('show');
+    loadBest();
+    buildGrid();
+    buildClues();
+    startTimer();
+  }
+
+  function checkAnswers(){
+    if(solved) return;
+    let allCorrect = true;
+    for(let r=0;r<puzzle.rows;r++){
+      for(let c=0;c<puzzle.cols;c++){
+        const cellEl = inputs[r][c].parentElement;
+        const val = inputs[r][c].value.trim();
+        const answer = puzzle.cells[r][c];
+        cellEl.classList.remove('correct','wrong');
+        if(val === answer){
+          cellEl.classList.add('correct');
+        } else {
+          cellEl.classList.add('wrong');
+          allCorrect = false;
+        }
+      }
+    }
+    if(allCorrect){
+      SFX.win(); FX.flash('rgba(255,194,75,0.32)'); FX.vibrate([35,30,70]);
+      solved = true;
+      clearInterval(timerId);
+      const best = parseInt(localStorage.getItem('crossword_best_' + puzzleIndex) || '99999', 10);
+      if(seconds < best) localStorage.setItem('crossword_best_' + puzzleIndex, seconds);
+      loadBest();
+      document.getElementById('modalTime').textContent = formatTime(seconds);
+      overlay.classList.add('show');
+    } else {
+      SFX.wrong(); FX.shake(); FX.vibrate(30);
+    }
+  }
+
+  document.getElementById('checkBtn').addEventListener('click', checkAnswers);
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    puzzleIndex = (puzzleIndex + 1 + Math.floor(Math.random()*(PUZZLES.length-1))) % PUZZLES.length;
+    newPuzzle();
+  });
+  document.getElementById('retryBtn').addEventListener('click', ()=>{
+    puzzleIndex = (puzzleIndex + 1 + Math.floor(Math.random()*(PUZZLES.length-1))) % PUZZLES.length;
+    newPuzzle();
+  });
+
+  newPuzzle();
+})();
+</script>
+</body>
+</html>

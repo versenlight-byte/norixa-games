@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>블록 챌린지 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="떨어지는 블록을 쌓아 줄을 없애는 블록 챌린지 게임. 스와이프와 방향키로 플레이.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5727459571536294"
+     crossorigin="anonymous"></script>
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B; --purple:#8B7CF6;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+    touch-action: none;
+  }
+  .wrap{ width:100%; max-width:400px; display:flex; flex-direction:column; gap:10px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:28px; margin:4px 0 0;
+      background: linear-gradient(90deg, var(--purple), var(--coral));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:4px 0 0; color:var(--muted); font-size:12.5px; }
+
+  .ad-slot{
+    width:100%; min-height:50px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:11px; background:rgba(245,240,234,0.03);
+  }
+
+  .top-row{ display:flex; gap:8px; }
+  .stat-box{
+    flex:1; text-align:center; padding:7px 4px; border-radius:12px;
+    background: rgba(245,240,234,0.06); border:1px solid var(--line);
+  }
+  .stat-box .lbl{ font-size:10px; color:var(--muted); }
+  .stat-box .val{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:15px; }
+  .next-box{
+    flex:0 0 64px; border-radius:12px; background: rgba(245,240,234,0.06);
+    border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .next-box .lbl{ font-size:10px; color:var(--muted); margin-bottom:2px; }
+  #nextCanvas{ width:44px; height:44px; }
+
+  .board-wrap{
+    position:relative; border-radius:14px; overflow:hidden;
+    border:1px solid var(--line); background: var(--card);
+    box-shadow: var(--shadow);
+    width:100%; display:flex; justify-content:center;
+  }
+  #gameCanvas{ display:block; }
+
+  .controls{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .ctrl-btn{
+    border:none; cursor:pointer; border-radius:12px; padding:14px 0;
+    background: rgba(245,240,234,0.08); border:1px solid var(--line);
+    color:var(--ink); font-size:20px; font-weight:700;
+  }
+  .ctrl-btn:active{ background: rgba(245,240,234,0.16); }
+  .ctrl-btn.rotate{ background: linear-gradient(135deg, var(--purple), var(--teal)); border:none; color:#1B1030; }
+  .ctrl-btn.drop{ background: linear-gradient(135deg, var(--coral), var(--amber)); border:none; color:#1B1030; }
+
+  .newgame-btn{
+    border:none; cursor:pointer; border-radius:12px; padding:10px; width:100%;
+    background: rgba(245,240,234,0.08); border:1px solid var(--line);
+    color:var(--muted); font-size:12.5px; font-family:'Noto Sans KR', sans-serif;
+  }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:340px;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line);
+    padding:26px 22px 22px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease;
+    box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:40px; margin-bottom:4px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:24px; margin:4px 0 10px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13px; margin-bottom:4px; }
+  .btn-retry{
+    margin-top:18px; width:100%; padding:14px; border:none; cursor:pointer;
+    border-radius:14px; background: linear-gradient(135deg, var(--teal), var(--amber));
+    color:#1B1030; font-weight:900; font-size:15px; font-family:'Noto Sans KR', sans-serif;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1>블록 챌린지</h1>
+    <p>떨어지는 블록을 쌓아 줄을 없애보세요</p>
+  </header>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-5727459571536294"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="top-row">
+    <div class="stat-box"><div class="lbl">점수</div><div class="val" id="score">0</div></div>
+    <div class="stat-box"><div class="lbl">레벨</div><div class="val" id="level">1</div></div>
+    <div class="stat-box"><div class="lbl">최고 점수</div><div class="val" id="best">0</div></div>
+    <div class="next-box"><div class="lbl">다음</div><canvas id="nextCanvas" width="80" height="80"></canvas></div>
+  </div>
+
+  <div class="board-wrap">
+    <canvas id="gameCanvas" width="240" height="480"></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="btnLeft">◀</button>
+    <button class="ctrl-btn rotate" id="btnRotate">↻</button>
+    <button class="ctrl-btn" id="btnRight">▶</button>
+    <button class="ctrl-btn drop" id="btnDrop">⬇</button>
+  </div>
+
+  <button class="newgame-btn" id="newGameBtn">새 게임 시작</button>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-5727459571536294"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="breakout.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">💥<br><span style="font-size:11.5px;">벽돌 깨기</span></a><a href="archery.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🏹<br><span style="font-size:11.5px;">양궁 챌린지</span></a><a href="updown.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🎯<br><span style="font-size:11.5px;">업다운 챌린지</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji">🧱</div>
+    <h2>게임 오버</h2>
+    <div class="result-line" id="modalScore">점수 0</div>
+    <div class="result-line" id="modalLevel">레벨 1</div>
+    <button class="btn-retry" id="retryBtn">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const COLS = 10, ROWS = 16;
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const nextCanvas = document.getElementById('nextCanvas');
+  const nctx = nextCanvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const levelEl = document.getElementById('level');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+
+  let cell; // computed cell size
+  function resize(){
+    const wrapEl = canvas.parentElement;
+    const maxWidth = wrapEl.clientWidth;
+    const spaceBelow = 230; // controls + hint + new-game button + bottom ad + gaps
+    const availableHeight = Math.max(240, window.innerHeight - wrapEl.getBoundingClientRect().top - spaceBelow);
+    const widthFromHeight = availableHeight * (COLS/ROWS);
+    const finalWidth = Math.min(maxWidth, widthFromHeight);
+    canvas.width = finalWidth;
+    canvas.height = finalWidth * (ROWS/COLS);
+    canvas.style.width = finalWidth + 'px';
+    canvas.style.height = (finalWidth * (ROWS/COLS)) + 'px';
+    cell = canvas.width / COLS;
+    draw();
+  }
+
+  const SHAPES = {
+    I: { m:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], c:'#2DD4BF' },
+    O: { m:[[1,1],[1,1]], c:'#FFC24B' },
+    T: { m:[[0,1,0],[1,1,1],[0,0,0]], c:'#8B7CF6' },
+    S: { m:[[0,1,1],[1,1,0],[0,0,0]], c:'#22C55E' },
+    Z: { m:[[1,1,0],[0,1,1],[0,0,0]], c:'#FF6B4A' },
+    J: { m:[[1,0,0],[1,1,1],[0,0,0]], c:'#60A5FA' },
+    L: { m:[[0,0,1],[1,1,1],[0,0,0]], c:'#F472B6' }
+  };
+  const KEYS = Object.keys(SHAPES);
+
+  let board, cur, next, score, level, lines, dropInterval, lastDrop, over, rafId;
+
+  function emptyBoard(){
+    return Array.from({length:ROWS}, ()=>Array(COLS).fill(null));
+  }
+
+  function randomPiece(){
+    const key = KEYS[Math.floor(Math.random()*KEYS.length)];
+    const shape = SHAPES[key];
+    const m = shape.m.map(r=>r.slice());
+    return { m, c: shape.c, x: Math.floor((COLS - m[0].length)/2), y: 0 };
+  }
+
+  function rotateMatrix(m){
+    const n = m.length;
+    const res = Array.from({length:n}, ()=>Array(n).fill(0));
+    for(let r=0;r<n;r++) for(let c=0;c<n;c++) res[c][n-1-r] = m[r][c];
+    return res;
+  }
+
+  function collides(m, x, y){
+    for(let r=0;r<m.length;r++){
+      for(let c=0;c<m[r].length;c++){
+        if(!m[r][c]) continue;
+        const bx = x+c, by = y+r;
+        if(bx < 0 || bx >= COLS || by >= ROWS) return true;
+        if(by >= 0 && board[by][bx]) return true;
+      }
+    }
+    return false;
+  }
+
+  function lockPiece(){
+    for(let r=0;r<cur.m.length;r++){
+      for(let c=0;c<cur.m[r].length;c++){
+        if(cur.m[r][c]){
+          const by = cur.y+r, bx = cur.x+c;
+          if(by >= 0) board[by][bx] = cur.c;
+        }
+      }
+    }
+    clearLines();
+    cur = next;
+    next = randomPiece();
+    drawNext();
+    if(collides(cur.m, cur.x, cur.y)){
+      endGame();
+    }
+  }
+
+  function clearLines(){
+    let cleared = 0;
+    for(let r=ROWS-1;r>=0;r--){
+      if(board[r].every(cell => cell)){
+        board.splice(r,1);
+        board.unshift(Array(COLS).fill(null));
+        cleared++;
+        r++;
+      }
+    }
+    if(cleared > 0){
+      SFX.correct(); FX.flash('rgba(45,212,191,0.22)'); FX.vibrate(14);
+      const points = [0,100,300,500,800][cleared] || 800;
+      score += points * level;
+      lines += cleared;
+      level = Math.floor(lines/10) + 1;
+      dropInterval = Math.max(120, 1000 - (level-1)*80);
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+    }
+  }
+
+  function drawCell(c, r, color, context, size){
+    context.fillStyle = color;
+    context.fillRect(c*size+1, r*size+1, size-2, size-2);
+    context.strokeStyle = 'rgba(0,0,0,0.25)';
+    context.strokeRect(c*size+1, r*size+1, size-2, size-2);
+  }
+
+  function ghostY(){
+    let gy = cur.y;
+    while(!collides(cur.m, cur.x, gy+1)) gy++;
+    return gy;
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#241640';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    // locked board
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        if(board[r][c]) drawCell(c,r,board[r][c],ctx,cell);
+      }
+    }
+    // ghost piece (landing preview)
+    const gy = ghostY();
+    ctx.globalAlpha = 0.22;
+    for(let r=0;r<cur.m.length;r++){
+      for(let c=0;c<cur.m[r].length;c++){
+        if(cur.m[r][c]){
+          const by = gy+r;
+          if(by >= 0) drawCell(cur.x+c, by, cur.c, ctx, cell);
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+    // current piece
+    for(let r=0;r<cur.m.length;r++){
+      for(let c=0;c<cur.m[r].length;c++){
+        if(cur.m[r][c]){
+          const by = cur.y+r;
+          if(by >= 0) drawCell(cur.x+c, by, cur.c, ctx, cell);
+        }
+      }
+    }
+  }
+
+  function drawNext(){
+    nctx.clearRect(0,0,nextCanvas.width,nextCanvas.height);
+    const size = 18;
+    const m = next.m;
+    const offX = (4 - m[0].length)/2, offY = (4 - m.length)/2;
+    for(let r=0;r<m.length;r++){
+      for(let c=0;c<m[r].length;c++){
+        if(m[r][c]) drawCell(c+offX, r+offY, next.c, nctx, size);
+      }
+    }
+  }
+
+  function move(dx){
+    if(over) return;
+    if(!collides(cur.m, cur.x+dx, cur.y)){ cur.x += dx; draw(); }
+  }
+
+  function rotate(){
+    if(over) return;
+    const m = rotateMatrix(cur.m);
+    // simple wall kick attempts
+    const kicks = [0,-1,1,-2,2];
+    for(const k of kicks){
+      if(!collides(m, cur.x+k, cur.y)){
+        cur.m = m; cur.x += k; draw(); return;
+      }
+    }
+  }
+
+  function softDrop(){
+    if(over) return;
+    if(!collides(cur.m, cur.x, cur.y+1)){
+      cur.y += 1; score += 1; scoreEl.textContent = score;
+    } else {
+      lockPiece();
+    }
+    draw();
+    lastDrop = performance.now();
+  }
+
+  function hardDrop(){
+    if(over) return;
+    while(!collides(cur.m, cur.x, cur.y+1)){ cur.y += 1; score += 2; }
+    scoreEl.textContent = score;
+    lockPiece();
+    draw();
+    lastDrop = performance.now();
+  }
+
+  function endGame(){
+    over = true;
+    SFX.lose(); FX.shake(); FX.vibrate([70,40,70]);
+    cancelAnimationFrame(rafId);
+    const best = parseInt(localStorage.getItem('blocks_best') || '0', 10);
+    if(score > best) localStorage.setItem('blocks_best', score);
+    bestEl.textContent = localStorage.getItem('blocks_best');
+    document.getElementById('modalScore').textContent = '점수 ' + score;
+    document.getElementById('modalLevel').textContent = '레벨 ' + level;
+    overlay.classList.add('show');
+  }
+
+  function loop(ts){
+    if(over) return;
+    if(ts - lastDrop > dropInterval){
+      if(!collides(cur.m, cur.x, cur.y+1)){
+        cur.y += 1;
+      } else {
+        lockPiece();
+      }
+      draw();
+      lastDrop = ts;
+    }
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function newGame(){
+    board = emptyBoard();
+    score = 0; level = 1; lines = 0; dropInterval = 1000; over = false;
+    scoreEl.textContent = '0'; levelEl.textContent = '1';
+    bestEl.textContent = localStorage.getItem('blocks_best') || '0';
+    overlay.classList.remove('show');
+    cur = randomPiece();
+    next = randomPiece();
+    drawNext();
+    resize();
+    lastDrop = performance.now();
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  // buttons: press-and-hold auto-repeat (DAS), like real Tetris controls
+  function holdRepeat(el, fn){
+    let repeatTimer = null, delayTimer = null;
+    function start(e){
+      e.preventDefault();
+      SFX.click(); fn();
+      delayTimer = setTimeout(() => {
+        repeatTimer = setInterval(fn, 60);
+      }, 220);
+    }
+    function stop(){
+      clearTimeout(delayTimer); clearInterval(repeatTimer);
+      delayTimer = null; repeatTimer = null;
+    }
+    el.addEventListener('pointerdown', start);
+    el.addEventListener('pointerup', stop);
+    el.addEventListener('pointerleave', stop);
+    el.addEventListener('pointercancel', stop);
+  }
+  holdRepeat(document.getElementById('btnLeft'), () => move(-1));
+  holdRepeat(document.getElementById('btnRight'), () => move(1));
+  holdRepeat(document.getElementById('btnDrop'), () => softDrop());
+  document.getElementById('btnRotate').addEventListener('click', ()=>{SFX.click(); rotate();});
+  document.getElementById('retryBtn').addEventListener('click', newGame);
+  document.getElementById('newGameBtn').addEventListener('click', newGame);
+
+  // keyboard
+  window.addEventListener('keydown', e => {
+    if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key)) e.preventDefault();
+    if(e.key === 'ArrowLeft') move(-1);
+    else if(e.key === 'ArrowRight') move(1);
+    else if(e.key === 'ArrowDown') softDrop();
+    else if(e.key === 'ArrowUp') rotate();
+    else if(e.key === ' ') hardDrop();
+  });
+
+  // swipe on board
+  let sx=0, sy=0, st=0;
+  canvas.addEventListener('touchstart', e => {
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+  }, {passive:true});
+  canvas.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    const dt = Date.now() - st;
+    if(Math.abs(dx) < 20 && Math.abs(dy) < 20 && dt < 250){ rotate(); return; }
+    if(Math.abs(dx) > Math.abs(dy)){
+      if(Math.abs(dx) > 24) move(dx > 0 ? 1 : -1);
+    } else {
+      if(dy > 60) hardDrop();
+      else if(dy > 24) softDrop();
+    }
+  }, {passive:true});
+
+  window.addEventListener('resize', resize);
+  newGame();
+})();
+</script>
+</body>
+</html>

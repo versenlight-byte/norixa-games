@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>슛왕 챌린지 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="손가락으로 스와이프해서 공을 던지는 농구 슛 게임. 10개의 슛 기회 안에 최고 점수를 노려보세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+    touch-action: none;
+  }
+  .wrap{ width:100%; max-width:400px; display:flex; flex-direction:column; gap:10px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:28px; margin:4px 0 0;
+      background: linear-gradient(90deg, var(--coral), var(--amber));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:4px 0 0; color:var(--muted); font-size:12.5px; }
+
+  .ad-slot{
+    width:100%; min-height:50px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:11px; background:rgba(245,240,234,0.03);
+  }
+
+  .top-row{ display:flex; gap:8px; }
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .stat-box{ flex:1; text-align:center; padding:7px 4px; border-radius:12px; background: rgba(245,240,234,0.06); border:1px solid var(--line); }
+  .stat-box .lbl{ font-size:10px; color:var(--muted); }
+  .stat-box .val{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:15px; }
+
+  .board-wrap{ position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--line); background: var(--card); box-shadow: var(--shadow); touch-action:none; }
+  #gameCanvas{ display:block; width:100%; height:auto; touch-action:none; }
+
+  .newgame-btn{ border:none; cursor:pointer; border-radius:12px; padding:10px; width:100%;
+    background: rgba(245,240,234,0.08); border:1px solid var(--line); color:var(--muted); font-size:12.5px; }
+
+  .hint{ text-align:center; color:var(--muted); font-size:12.5px; }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:340px; background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line); padding:26px 22px 22px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease; box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:40px; margin-bottom:4px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:24px; margin:4px 0 10px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13px; margin-bottom:4px; }
+  .btn-retry{ margin-top:18px; width:100%; padding:14px; border:none; cursor:pointer; border-radius:14px;
+    background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030; font-weight:900; font-size:15px; font-family:'Noto Sans KR', sans-serif; }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1 data-i18n="title">슛왕 챌린지</h1>
+    <p data-i18n="subtitle">공을 위로 스와이프해서 골대에 넣으세요 · 10개 슛</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="top-row">
+    <div class="stat-box"><div class="lbl" data-i18n="stat_shots">남은 슛</div><div class="val" id="shotsLeft">10</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_score">점수</div><div class="val" id="score">0</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_best">최고 점수</div><div class="val" id="best">0</div></div>
+  </div>
+
+  <div class="board-wrap">
+    <canvas id="gameCanvas" width="360" height="480"></canvas>
+  </div>
+
+  <button class="newgame-btn" id="newGameBtn" data-i18n="btn_newgame">새 게임 시작</button>
+  <div class="hint" data-i18n="hint_controls">👆 공을 눌러서 위로 스와이프하면 슛! 세게 튕길수록 더 멀리 날아가요</div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="worldcup.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚽<br><span style="font-size:11.5px;">2026북중미월드컵</span></a><a href="memory.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🃏<br><span style="font-size:11.5px;">카드 짝맞추기</span></a><a href="omok.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚫<br><span style="font-size:11.5px;">오목</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="modalEmoji">🏀</div>
+    <h2 id="modalTitle">경기 종료!</h2>
+    <div class="result-line" id="modalScore">총점 0</div>
+    <div class="result-line" id="modalMakes">10개 중 0개 성공</div>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '24px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const shotsLeftEl = document.getElementById('shotsLeft');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+
+  const TOTAL_SHOTS = 10;
+  const GRAVITY = 1400; // px/s^2 in virtual 360-wide coordinate space
+  const BALL_R = 13;
+  const RIM_Y = 118;       // virtual y of the rim
+  const RIM_HALF_W = 27;   // half-width of the scoring window
+  const HOOP_X = 180;      // virtual x of hoop center (canvas is 360 wide)
+
+  let W, H, scale;
+  let score, makes, streak, shotsLeft, over, best;
+  let lastModal = null;
+
+  const LANG = {
+    ko: {
+      title:'슛왕 챌린지', subtitle:'공을 위로 스와이프해서 골대에 넣으세요 · 10개 슛',
+      stat_shots:'남은 슛', stat_score:'점수', stat_best:'최고 점수',
+      btn_newgame:'새 게임 시작', btn_retry:'다시 하기',
+      hint_controls:'👆 공을 눌러서 위로 스와이프하면 슛! 세게 튕길수록 더 멀리 날아가요',
+      popup_streak:(p)=>`스트릭! +${p}`, popup_made:(p)=>`성공! +${p}`, popup_miss:'놓쳤어요',
+      title_perfect:'완벽한 슈터! 🏆', title_great:'훌륭한 슛이에요! 🎉', title_normal:'경기 종료!',
+      modal_score:(s)=>`총점 ${s}`, modal_makes:(t,m)=>`${t}개 중 ${m}개 성공`,
+    },
+    en: {
+      title:'Shooting King Challenge', subtitle:'Swipe up to shoot the ball into the hoop · 10 shots',
+      stat_shots:'Shots Left', stat_score:'Score', stat_best:'Best',
+      btn_newgame:'New Game', btn_retry:'Try Again',
+      hint_controls:'👆 Press the ball and swipe up to shoot! Flick harder to go farther',
+      popup_streak:(p)=>`Streak! +${p}`, popup_made:(p)=>`Nice! +${p}`, popup_miss:'Missed',
+      title_perfect:'Perfect Shooter! 🏆', title_great:'Great shooting! 🎉', title_normal:'Game Over!',
+      modal_score:(s)=>`Score ${s}`, modal_makes:(t,m)=>`${m} of ${t} made`,
+    },
+    es: {
+      title:'Desafío de Tiros', subtitle:'Desliza hacia arriba para lanzar la pelota a la canasta · 10 tiros',
+      stat_shots:'Tiros restantes', stat_score:'Puntos', stat_best:'Mejor',
+      btn_newgame:'Nueva partida', btn_retry:'Reintentar',
+      hint_controls:'👆 Presiona la pelota y desliza hacia arriba para lanzar. ¡Más fuerza, más distancia!',
+      popup_streak:(p)=>`¡Racha! +${p}`, popup_made:(p)=>`¡Bien! +${p}`, popup_miss:'Fallaste',
+      title_perfect:'¡Tirador perfecto! 🏆', title_great:'¡Excelente tiro! 🎉', title_normal:'¡Fin del juego!',
+      modal_score:(s)=>`Puntos ${s}`, modal_makes:(t,m)=>`${m} de ${t} encestados`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = t('title_' + lastModal.tier);
+      document.getElementById('modalScore').textContent = t('modal_score', lastModal.score);
+      document.getElementById('modalMakes').textContent = t('modal_makes', TOTAL_SHOTS, lastModal.makes);
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+  let ball, inFlight, scoredThisShot, dragging, dragStart, dragPoints;
+
+  function loadBest(){ best = parseInt(localStorage.getItem('shootking_best') || '0', 10); bestEl.textContent = best; }
+
+  function resize(){
+    const wrapWidth = canvas.parentElement.clientWidth;
+    scale = wrapWidth / 360;
+    canvas.width = wrapWidth;
+    canvas.height = wrapWidth * (480/360);
+    W = canvas.width; H = canvas.height;
+  }
+
+  function randomStartX(){
+    // vary the shooting spot each attempt so it isn't always a straight shot
+    return 110 + Math.random()*140; // virtual coords, range roughly 110-250 out of 360
+  }
+
+  function newBallAtStart(){
+    ball = { x: randomStartX(), y: 400, vx:0, vy:0 };
+    inFlight = false;
+    scoredThisShot = false;
+  }
+
+  function newGame(){
+    score = 0; makes = 0; streak = 0; shotsLeft = TOTAL_SHOTS; over = false;
+    dragging = false; dragPoints = [];
+    shotsLeftEl.textContent = shotsLeft;
+    scoreEl.textContent = '0';
+    overlay.classList.remove('show');
+    loadBest();
+    resize();
+    newBallAtStart();
+    cancelAnimationFrame(rafId);
+    lastTs = performance.now();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  let rafId, lastTs;
+
+  function loop(ts){
+    const dt = Math.min((ts-lastTs)/1000, 0.033);
+    lastTs = ts;
+    if(inFlight) stepPhysics(dt);
+    draw();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function stepPhysics(dt){
+    const prevY = ball.y;
+    ball.vy += GRAVITY*dt;
+    ball.x += ball.vx*dt;
+    ball.y += ball.vy*dt;
+
+    // score detection: ball must be descending and cross the rim height within the rim window
+    if(!scoredThisShot && ball.vy > 0 && prevY < RIM_Y && ball.y >= RIM_Y){
+      if(Math.abs(ball.x - HOOP_X) <= RIM_HALF_W){
+        scoredThisShot = true;
+        onMade();
+      }
+    }
+
+    // shot resolves once the ball leaves the visible play area
+    if(ball.y > 480 + 40 || ball.x < -40 || ball.x > 400){
+      resolveShot();
+    }
+  }
+
+  function onMade(){
+    makes++;
+    streak++;
+    let pts = 10;
+    if(streak >= 3) pts += 5;
+    score += pts;
+    scoreEl.textContent = score;
+    SFX.win(); FX.flash('rgba(255,194,75,0.3)'); FX.vibrate([30,25,60]);
+    const label = streak >= 3 ? t('popup_streak', pts) : t('popup_made', pts);
+    FX.popText(label, null, null, 'var(--amber)');
+  }
+
+  function resolveShot(){
+    if(!scoredThisShot){
+      streak = 0;
+      SFX.wrong();
+      FX.popText(t('popup_miss'), null, null, 'var(--muted)');
+    }
+    inFlight = false;
+    shotsLeft--;
+    shotsLeftEl.textContent = Math.max(shotsLeft,0);
+    if(shotsLeft <= 0){
+      setTimeout(endGame, 400);
+    } else {
+      setTimeout(newBallAtStart, 500);
+    }
+  }
+
+  function draw(){
+    ctx.fillStyle = '#1B1030';
+    ctx.fillRect(0,0,W,H);
+
+    // backboard
+    ctx.fillStyle = 'rgba(245,240,234,0.5)';
+    ctx.fillRect((HOOP_X-40)*scale, (RIM_Y-55)*scale, 80*scale, 8*scale);
+    // rim
+    ctx.strokeStyle = '#FF6B4A';
+    ctx.lineWidth = 4*scale;
+    ctx.beginPath();
+    ctx.moveTo((HOOP_X-RIM_HALF_W)*scale, RIM_Y*scale);
+    ctx.lineTo((HOOP_X+RIM_HALF_W)*scale, RIM_Y*scale);
+    ctx.stroke();
+    // net hint
+    ctx.strokeStyle = 'rgba(245,240,234,0.35)';
+    ctx.lineWidth = 1.5*scale;
+    for(let i=-2;i<=2;i++){
+      ctx.beginPath();
+      ctx.moveTo((HOOP_X+i*(RIM_HALF_W/2.5))*scale, RIM_Y*scale);
+      ctx.lineTo((HOOP_X+i*(RIM_HALF_W/4))*scale, (RIM_Y+28)*scale);
+      ctx.stroke();
+    }
+
+    // ball
+    ctx.fillStyle = '#FFC24B';
+    ctx.beginPath();
+    ctx.arc(ball.x*scale, ball.y*scale, BALL_R*scale, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(27,16,48,0.6)';
+    ctx.lineWidth = 1.5*scale;
+    ctx.stroke();
+
+    // drag trail
+    if(dragging && dragPoints.length > 1){
+      ctx.strokeStyle = 'rgba(45,212,191,0.5)';
+      ctx.lineWidth = 3*scale;
+      ctx.beginPath();
+      dragPoints.forEach((p,i) => {
+        if(i===0) ctx.moveTo(p.x*scale, p.y*scale); else ctx.lineTo(p.x*scale, p.y*scale);
+      });
+      ctx.stroke();
+    }
+  }
+
+  // ---- swipe input ----
+  function localPoint(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    return { x:(clientX-rect.left)/scale, y:(clientY-rect.top)/scale };
+  }
+
+  function onDragStart(clientX, clientY){
+    if(inFlight || over) return;
+    const p = localPoint(clientX, clientY);
+    const d = Math.hypot(p.x-ball.x, p.y-ball.y);
+    if(d > 45) return; // must start the drag reasonably near the ball
+    dragging = true;
+    dragStart = { x: p.x, y: p.y, t: performance.now() };
+    dragPoints = [p];
+  }
+
+  function onDragMove(clientX, clientY){
+    if(!dragging) return;
+    const p = localPoint(clientX, clientY);
+    dragPoints.push(p);
+    if(dragPoints.length > 12) dragPoints.shift();
+  }
+
+  function onDragEnd(){
+    if(!dragging) return;
+    dragging = false;
+    if(dragPoints.length < 2) return;
+    const first = dragPoints[0];
+    const last = dragPoints[dragPoints.length-1];
+    const dt = Math.max(16, performance.now() - dragStart.t) / 1000;
+    let dx = last.x - first.x;
+    let dy = last.y - first.y;
+    if(dy >= -8) return; // must swipe upward to shoot
+    const SENS = 1.15;
+    let vx = (dx/dt) * SENS;
+    let vy = (dy/dt) * SENS;
+    // clamp to keep shots reasonable
+    vx = Math.max(-520, Math.min(520, vx));
+    vy = Math.max(-980, Math.min(-320, vy));
+    ball.vx = vx; ball.vy = vy;
+    inFlight = true;
+    SFX.click();
+  }
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    onDragStart(t.clientX, t.clientY);
+  }, { passive:false });
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    onDragMove(t.clientX, t.clientY);
+  }, { passive:false });
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    onDragEnd();
+  }, { passive:false });
+
+  canvas.addEventListener('mousedown', e => onDragStart(e.clientX, e.clientY));
+  canvas.addEventListener('mousemove', e => onDragMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup', () => onDragEnd());
+
+  function endGame(){
+    over = true;
+    if(score > best) localStorage.setItem('shootking_best', score);
+    loadBest();
+    let tier = 'normal';
+    if(makes >= 8) tier = 'perfect';
+    else if(makes >= 5) tier = 'great';
+    lastModal = { tier, score, makes };
+    document.getElementById('modalTitle').textContent = t('title_' + tier);
+    document.getElementById('modalScore').textContent = t('modal_score', score);
+    document.getElementById('modalMakes').textContent = t('modal_makes', TOTAL_SHOTS, makes);
+    overlay.classList.add('show');
+  }
+
+  document.getElementById('retryBtn').addEventListener('click', () => { SFX.click(); newGame(); });
+  document.getElementById('newGameBtn').addEventListener('click', () => { SFX.click(); newGame(); });
+  window.addEventListener('resize', resize);
+
+  newGame();
+  applyLang();
+})();
+</script>
+</body>
+</html>

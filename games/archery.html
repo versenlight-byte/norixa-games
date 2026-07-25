@@ -47,6 +47,22 @@
     color:rgba(245,240,234,0.35); font-size:11px; background:rgba(245,240,234,0.03);
   }
 
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .dist-row{ display:flex; gap:6px; }
+  .dist-btn{
+    flex:1; padding:9px 0; border-radius:12px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); color:var(--muted); font-size:13px; font-weight:700;
+    font-family:'Noto Sans KR', sans-serif; cursor:pointer;
+  }
+  .dist-btn.active{ background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030; border-color:transparent; }
+  .dist-hint{ text-align:center; color:var(--muted); font-size:11px; }
+
   .top-row{ display:flex; gap:8px; }
   .stat-box{ flex:1; text-align:center; padding:7px 4px; border-radius:12px; background: rgba(245,240,234,0.06); border:1px solid var(--line); }
   .stat-box .lbl{ font-size:10px; color:var(--muted); }
@@ -100,9 +116,22 @@
 <div class="wrap">
   <a class="back" href="../index.html">← 게임 목록으로</a>
   <header>
-    <h1>양궁 챌린지</h1>
-    <p>움직이는 과녁에 타이밍을 맞춰 쏘세요 · 5발</p>
+    <h1 data-i18n="title">양궁 챌린지</h1>
+    <p data-i18n="subtitle">움직이는 과녁에 타이밍을 맞춰 쏘세요 · 5발</p>
   </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <div class="dist-row" id="distRow">
+    <button class="dist-btn" data-dist="20">20m</button>
+    <button class="dist-btn" data-dist="50">50m</button>
+    <button class="dist-btn" data-dist="70">70m 🏅</button>
+  </div>
+  <div class="dist-hint" id="distHint">올림픽 리커브 정식 종목은 70m · 과녁 지름 1.22m예요</div>
 
   <ins class="adsbygoogle ad-slot"
        style="display:block"
@@ -113,17 +142,17 @@
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
   <div class="top-row">
-    <div class="stat-box"><div class="lbl">남은 화살</div><div class="val" id="arrowsLeft">5</div></div>
-    <div class="stat-box"><div class="lbl">총점</div><div class="val" id="score">0</div></div>
-    <div class="stat-box"><div class="lbl">최고 점수</div><div class="val" id="best">0</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_arrows">남은 화살</div><div class="val" id="arrowsLeft">5</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_score">총점</div><div class="val" id="score">0</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_best">최고 점수</div><div class="val" id="best">0</div></div>
   </div>
 
   <div class="board-wrap">
     <canvas id="gameCanvas" width="360" height="360"></canvas>
   </div>
 
-  <button class="shoot-btn" id="shootBtn">발사!</button>
-  <button class="newgame-btn" id="newGameBtn">새 게임 시작</button>
+  <button class="shoot-btn" id="shootBtn" data-i18n="btn_shoot">발사!</button>
+  <button class="newgame-btn" id="newGameBtn" data-i18n="btn_newgame">새 게임 시작</button>
 
   <ins class="adsbygoogle ad-slot"
        style="display:block"
@@ -133,7 +162,7 @@
        data-full-width-responsive="true"></ins>
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
-  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="omok.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚫<br><span style="font-size:11.5px;">오목</span></a><a href="click.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚡<br><span style="font-size:11.5px;">반응속도 테스트</span></a><a href="breakout.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">💥<br><span style="font-size:11.5px;">벽돌 깨기</span></a></div></div>
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="omok.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚫<br><span style="font-size:11.5px;">오목</span></a><a href="basketball.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🏀<br><span style="font-size:11.5px;">슛왕 챌린지</span></a><a href="memory.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🃏<br><span style="font-size:11.5px;">카드 짝맞추기</span></a></div></div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -141,7 +170,7 @@
     <div class="emoji" id="modalEmoji">🏹</div>
     <h2 id="modalTitle">결과 발표!</h2>
     <div class="result-line" id="modalScore">총점 0/50</div>
-    <button class="btn-retry" id="retryBtn">다시 하기</button>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
   </div>
 </div>
 
@@ -213,13 +242,97 @@
   const bestEl = document.getElementById('best');
   const overlay = document.getElementById('overlay');
   const shootBtn = document.getElementById('shootBtn');
+  const distRow = document.getElementById('distRow');
 
-  const RINGS = [
+  let lastModal = null;
+  const LANG = {
+    ko: {
+      title:'양궁 챌린지', subtitle:'움직이는 과녁에 타이밍을 맞춰 쏘세요 · 5발',
+      stat_arrows:'남은 화살', stat_score:'총점', stat_best:'최고 점수',
+      btn_shoot:'발사!', btn_newgame:'새 게임 시작', btn_retry:'다시 하기',
+      dist_hint_20:'가까운 거리부터 감을 잡아보세요', dist_hint_50:'표준 연습 거리예요',
+      dist_hint_70:'올림픽 리커브 정식 종목은 70m · 과녁 지름 1.22m예요',
+      title_perfect:'완벽한 명궁! 🏆', title_great:'훌륭해요! 🎯', title_ok:'나쁘지 않아요', title_meh:'아쉬워요',
+      modal_score:(s)=>`총점 ${s}/50`,
+    },
+    en: {
+      title:'Archery Challenge', subtitle:'Time your shot at the moving target · 5 arrows',
+      stat_arrows:'Arrows Left', stat_score:'Score', stat_best:'Best',
+      btn_shoot:'Shoot!', btn_newgame:'New Game', btn_retry:'Try Again',
+      dist_hint_20:'Start close and get a feel for it', dist_hint_50:'The standard practice distance',
+      dist_hint_70:'70m is the official Olympic recurve distance · 1.22m target',
+      title_perfect:'Perfect archer! 🏆', title_great:'Great shooting! 🎯', title_ok:'Not bad', title_meh:'So-so',
+      modal_score:(s)=>`Score ${s}/50`,
+    },
+    es: {
+      title:'Desafío de Tiro con Arco', subtitle:'Calcula el momento justo para dar en el blanco móvil · 5 flechas',
+      stat_arrows:'Flechas restantes', stat_score:'Puntos', stat_best:'Mejor',
+      btn_shoot:'¡Disparar!', btn_newgame:'Nueva partida', btn_retry:'Reintentar',
+      dist_hint_20:'Empieza de cerca para agarrar el ritmo', dist_hint_50:'La distancia estándar de práctica',
+      dist_hint_70:'70m es la distancia olímpica oficial de arco recurvo · blanco de 1.22m',
+      title_perfect:'¡Arquero perfecto! 🏆', title_great:'¡Excelente tiro! 🎯', title_ok:'Nada mal', title_meh:'Regular',
+      modal_score:(s)=>`Puntos ${s}/50`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    renderDistButtons();
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = t('title_' + lastModal.tier);
+      document.getElementById('modalScore').textContent = t('modal_score', lastModal.score);
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+  const distHint = document.getElementById('distHint');
+
+  // 50m을 기준(1.0)으로, 실제 거리 비율에 가깝게 과녁이 멀수록 작아 보이도록 스케일을 둬요.
+  // (완전히 물리 비율 그대로 하면 20m 과녁이 화면보다 커져서, 플레이 가능한 범위로 조정했어요)
+  const DIST_SCALE = { 20: 1.5, 50: 1.0, 70: 0.65 };
+  const BASE_RINGS = [
     { r:60, color:'#4b3a72', pts:4 },
     { r:42, color:'#8B7CF6', pts:5 },
     { r:26, color:'#FF6B4A', pts:8 },
     { r:12, color:'#FFC24B', pts:10 }
   ];
+  let currentDistance = parseInt(localStorage.getItem('archery_distance') || '50', 10);
+  function buildRings(distance){
+    const s = DIST_SCALE[distance] || 1.0;
+    return BASE_RINGS.map(ring => ({ ...ring, r: ring.r * s }));
+  }
+  let RINGS = buildRings(currentDistance);
+
+  function renderDistButtons(){
+    [...distRow.children].forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.dist,10) === currentDistance);
+    });
+    distHint.textContent = t('dist_hint_' + currentDistance);
+  }
+  distRow.addEventListener('click', (e) => {
+    const btn = e.target.closest('.dist-btn');
+    if(!btn) return;
+    SFX.click();
+    currentDistance = parseInt(btn.dataset.dist, 10);
+    localStorage.setItem('archery_distance', currentDistance);
+    RINGS = buildRings(currentDistance);
+    renderDistButtons();
+    newGame();
+  });
+  applyLang();
+
 
   let W, H, scale, targetX, targetY, dir, speed, score, arrows, aiming, animating, rafId, popup;
 
@@ -374,12 +487,13 @@
     const best = parseInt(localStorage.getItem('archery_best') || '0', 10);
     if(score > best) localStorage.setItem('archery_best', score);
     loadBest();
-    let title = '아쉬워요';
-    if(score >= 45) title = '완벽한 명궁! 🏆';
-    else if(score >= 30) title = '훌륭해요! 🎯';
-    else if(score >= 15) title = '나쁘지 않아요';
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalScore').textContent = '총점 ' + score + '/50';
+    let tier = 'meh';
+    if(score >= 45) tier = 'perfect';
+    else if(score >= 30) tier = 'great';
+    else if(score >= 15) tier = 'ok';
+    lastModal = { tier, score };
+    document.getElementById('modalTitle').textContent = t('title_' + tier);
+    document.getElementById('modalScore').textContent = t('modal_score', score);
     overlay.classList.add('show');
   }
 

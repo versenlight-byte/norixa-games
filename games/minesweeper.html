@@ -46,6 +46,13 @@
   }
 
   .statbar{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
   .stat-box{
     flex:1; text-align:center; padding:8px 6px; border-radius:12px;
     background: rgba(245,240,234,0.06); border:1px solid var(--line);
@@ -135,9 +142,15 @@
 <div class="wrap">
   <a class="back" href="../index.html">← 게임 목록으로</a>
   <header>
-    <h1>지뢰찾기</h1>
-    <p>지뢰 10개를 피해서 모든 칸을 열어보세요</p>
+    <h1 data-i18n="title">지뢰찾기</h1>
+    <p data-i18n="subtitle">지뢰 10개를 피해서 모든 칸을 열어보세요</p>
   </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
 
   <ins class="adsbygoogle ad-slot"
        style="display:block"
@@ -148,15 +161,15 @@
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
   <div class="statbar">
-    <div class="stat-box"><div class="lbl">남은 지뢰</div><div class="val" id="mineCount">10</div></div>
-    <div class="stat-box"><div class="lbl">시간</div><div class="val" id="timer">0</div></div>
-    <div class="stat-box"><div class="lbl">최고 기록</div><div class="val" id="best">-</div></div>
-    <button class="newgame-btn" id="newGameBtn">새 게임</button>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_mines">남은 지뢰</div><div class="val" id="mineCount">10</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_time">시간</div><div class="val" id="timer">0</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_best">최고 기록</div><div class="val" id="best">-</div></div>
+    <button class="newgame-btn" id="newGameBtn" data-i18n="btn_newgame">새 게임</button>
   </div>
   <button class="flag-toggle" id="flagToggle">🚩 깃발 모드 (끄기)</button>
 
   <div class="board" id="board"></div>
-  <div class="hint">👆 탭해서 열기 · 깃발 모드를 켜고 탭하면 지뢰 표시</div>
+  <div class="hint" data-i18n="hint_controls">👆 탭해서 열기 · 깃발 모드를 켜고 탭하면 지뢰 표시</div>
 
   <ins class="adsbygoogle ad-slot"
        style="display:block"
@@ -166,7 +179,7 @@
        data-full-width-responsive="true"></ins>
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
-  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="armor.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚔️<br><span style="font-size:11.5px;">전신갑주</span></a><a href="memory.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🃏<br><span style="font-size:11.5px;">카드 짝맞추기</span></a><a href="proverb.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">📜<br><span style="font-size:11.5px;">속담 맞추기</span></a></div></div>
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="armor.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚔️<br><span style="font-size:11.5px;">전신갑주</span></a><a href="golf.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⛳<br><span style="font-size:11.5px;">골프왕 챌린지</span></a><a href="breakout.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">💥<br><span style="font-size:11.5px;">벽돌 깨기</span></a></div></div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -174,7 +187,7 @@
     <div class="emoji" id="modalEmoji">🎉</div>
     <h2 id="modalTitle">클리어!</h2>
     <div class="result-line" id="modalLine">기록 0초</div>
-    <button class="btn-retry" id="retryBtn">다시 하기</button>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
   </div>
 </div>
 
@@ -250,10 +263,65 @@
   const bestEl = document.getElementById('best');
 
   let mines, revealed, flagged, over, started, firstClickDone, flagMode, timerInterval, seconds, cells;
+  let lastModal = null;
+
+  const LANG = {
+    ko: {
+      title:'지뢰찾기', subtitle:'지뢰 10개를 피해서 모든 칸을 열어보세요',
+      stat_mines:'남은 지뢰', stat_time:'시간', stat_best:'최고 기록', btn_newgame:'새 게임', btn_retry:'다시 하기',
+      hint_controls:'👆 탭해서 열기 · 깃발 모드를 켜고 탭하면 지뢰 표시',
+      flag_on:'🚩 깃발 모드 (켜짐)', flag_off:'🚩 깃발 모드 (끄기)',
+      seconds_suffix:(s)=>`${s}초`,
+      modal_lose_title:'펑! 지뢰를 밟았어요', modal_lose_line:(s)=>`${s}초 만에 게임 종료`,
+      modal_win_title:'클리어!', modal_win_line:(s)=>`기록 ${s}초`,
+    },
+    en: {
+      title:'Minesweeper', subtitle:'Clear the board while avoiding 10 mines',
+      stat_mines:'Mines Left', stat_time:'Time', stat_best:'Best', btn_newgame:'New Game', btn_retry:'Try Again',
+      hint_controls:'👆 Tap to reveal · Turn on flag mode and tap to mark mines',
+      flag_on:'🚩 Flag Mode (On)', flag_off:'🚩 Flag Mode (Off)',
+      seconds_suffix:(s)=>`${s}s`,
+      modal_lose_title:'Boom! You hit a mine', modal_lose_line:(s)=>`Game over in ${s}s`,
+      modal_win_title:'Cleared!', modal_win_line:(s)=>`Time ${s}s`,
+    },
+    es: {
+      title:'Buscaminas', subtitle:'Despeja el tablero evitando 10 minas',
+      stat_mines:'Minas restantes', stat_time:'Tiempo', stat_best:'Mejor', btn_newgame:'Nueva partida', btn_retry:'Reintentar',
+      hint_controls:'👆 Toca para revelar · Activa el modo bandera y toca para marcar minas',
+      flag_on:'🚩 Modo bandera (Activado)', flag_off:'🚩 Modo bandera (Desactivado)',
+      seconds_suffix:(s)=>`${s}s`,
+      modal_lose_title:'¡Boom! Pisaste una mina', modal_lose_line:(s)=>`Fin del juego en ${s}s`,
+      modal_win_title:'¡Completado!', modal_win_line:(s)=>`Tiempo ${s}s`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    flagToggle.textContent = flagMode ? t('flag_on') : t('flag_off');
+    loadBest();
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = t('modal_' + lastModal.outcome + '_title');
+      document.getElementById('modalLine').textContent = t('modal_' + lastModal.outcome + '_line', lastModal.seconds);
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
 
   function loadBest(){
     const b = localStorage.getItem('mine_best');
-    bestEl.textContent = b ? b + '초' : '-';
+    bestEl.textContent = b ? t('seconds_suffix', b) : '-';
   }
 
   function newGame(){
@@ -265,7 +333,7 @@
     timerEl.textContent = '0';
     mineCountEl.textContent = MINES;
     flagToggle.classList.remove('active');
-    flagToggle.textContent = '🚩 깃발 모드 (끄기)';
+    flagToggle.textContent = t('flag_off');
     clearInterval(timerInterval);
     overlay.classList.remove('show');
     render();
@@ -380,9 +448,10 @@
       clearInterval(timerInterval);
       for(let rr=0;rr<SIZE;rr++) for(let cc=0;cc<SIZE;cc++) if(mines[rr][cc]) revealed[rr][cc] = true;
       render();
+      lastModal = { outcome:'lose', seconds };
       document.getElementById('modalEmoji').textContent = '💥';
-      document.getElementById('modalTitle').textContent = '펑! 지뢰를 밟았어요';
-      document.getElementById('modalLine').textContent = seconds + '초 만에 게임 종료';
+      document.getElementById('modalTitle').textContent = t('modal_lose_title');
+      document.getElementById('modalLine').textContent = t('modal_lose_line', seconds);
       overlay.classList.add('show');
       return;
     }
@@ -398,9 +467,10 @@
       const best = parseInt(localStorage.getItem('mine_best') || '999999', 10);
       if(seconds < best) localStorage.setItem('mine_best', seconds);
       loadBest();
+      lastModal = { outcome:'win', seconds };
       document.getElementById('modalEmoji').textContent = '🎉';
-      document.getElementById('modalTitle').textContent = '클리어!';
-      document.getElementById('modalLine').textContent = '기록 ' + seconds + '초';
+      document.getElementById('modalTitle').textContent = t('modal_win_title');
+      document.getElementById('modalLine').textContent = t('modal_win_line', seconds);
       overlay.classList.add('show');
     }
   }
@@ -433,7 +503,7 @@
   flagToggle.addEventListener('click', () => {
     flagMode = !flagMode;
     flagToggle.classList.toggle('active', flagMode);
-    flagToggle.textContent = flagMode ? '🚩 깃발 모드 (켜짐)' : '🚩 깃발 모드 (끄기)';
+    flagToggle.textContent = flagMode ? t('flag_on') : t('flag_off');
   });
 
   retryBtn.addEventListener('click', newGame);
@@ -441,6 +511,7 @@
 
   loadBest();
   newGame();
+  applyLang();
   function applyBoardHeightFallback(){
     if(boardEl.offsetWidth > 0) boardEl.style.height = boardEl.offsetWidth + 'px';
   }

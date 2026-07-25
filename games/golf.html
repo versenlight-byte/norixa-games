@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>골프왕 챌린지 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="파워와 정확도 게이지를 타이밍에 맞춰 멈춰서 홀인을 노리는 골프 게임. 3개 홀을 최소 타수로 돌아보세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+    touch-action: manipulation;
+  }
+  .wrap{ width:100%; max-width:420px; display:flex; flex-direction:column; gap:12px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:28px; margin:6px 0 0;
+      background: linear-gradient(90deg, var(--teal), var(--amber));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:12.5px; }
+
+  .ad-slot{
+    width:100%; min-height:60px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:12px; background:rgba(245,240,234,0.03);
+  }
+
+  .statbar{ display:flex; gap:8px; }
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .stat-box{ flex:1; text-align:center; padding:7px 4px; border-radius:12px; background: rgba(245,240,234,0.06); border:1px solid var(--line); }
+  .stat-box .lbl{ font-size:10px; color:var(--muted); }
+  .stat-box .val{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:15px; }
+
+  .course-card{
+    background: var(--card); border-radius:16px; border:1px solid var(--line); box-shadow: var(--shadow);
+    padding:16px; display:flex; flex-direction:column; gap:10px;
+  }
+  .course-track{ position:relative; height:34px; background: linear-gradient(90deg, #2D8A4E, #3AAE63); border-radius:8px; overflow:hidden; }
+  .course-hole{ position:absolute; right:4px; top:50%; transform:translateY(-50%); font-size:20px; }
+  .course-ball{ position:absolute; top:50%; transform:translate(-50%,-50%); font-size:16px; transition: left .5s ease; }
+  .course-flag{ text-align:center; color:var(--muted); font-size:12px; }
+
+  .meter-wrap{ display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .meter-label{ font-family:'Do Hyeon', sans-serif; font-size:17px; color:var(--amber); }
+  .meter-bar{ position:relative; width:100%; height:26px; background: rgba(245,240,234,0.08); border-radius:13px; overflow:hidden; border:1px solid var(--line); }
+  .meter-fill{ position:absolute; left:0; top:0; bottom:0; background: linear-gradient(90deg, var(--teal), var(--amber)); width:0%; }
+  .meter-center{ position:absolute; left:50%; top:0; bottom:0; width:2px; background: rgba(245,240,234,0.5); }
+  .meter-indicator{ position:absolute; top:-4px; width:4px; height:34px; background:#F5F0EA; border-radius:2px; left:0%; }
+
+  .swing-btn{
+    border:none; cursor:pointer; border-radius:16px; padding:16px; width:100%;
+    background: linear-gradient(135deg, var(--coral), var(--amber)); color:#1B1030;
+    font-weight:900; font-size:18px; font-family:'Do Hyeon', sans-serif; letter-spacing:1px;
+  }
+  .swing-btn:active{ transform: scale(0.97); }
+
+  .newgame-btn{ border:none; cursor:pointer; border-radius:12px; padding:10px; width:100%;
+    background: rgba(245,240,234,0.08); border:1px solid var(--line); color:var(--muted); font-size:12.5px; }
+
+  .result-banner{ text-align:center; font-family:'Do Hyeon', sans-serif; font-size:17px; min-height:24px; color:var(--teal); }
+
+  .hint{ text-align:center; color:var(--muted); font-size:12.5px; }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:340px; background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line); padding:26px 22px 22px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease; box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:40px; margin-bottom:4px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:24px; margin:4px 0 10px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13px; margin-bottom:4px; }
+  .btn-retry{ margin-top:18px; width:100%; padding:14px; border:none; cursor:pointer; border-radius:14px;
+    background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030; font-weight:900; font-size:15px; font-family:'Noto Sans KR', sans-serif; }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1 data-i18n="title">골프왕 챌린지</h1>
+    <p data-i18n="subtitle">파워 → 정확도 순서로 탭! 3개 홀 최소 타수 도전</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="statbar">
+    <div class="stat-box"><div class="lbl" data-i18n="stat_hole">홀</div><div class="val" id="holeVal">1/3</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_stroke">타수</div><div class="val" id="strokeVal">0</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_total">합계</div><div class="val" id="totalVal">E</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_best">최고기록</div><div class="val" id="bestVal">-</div></div>
+  </div>
+
+  <div class="course-card">
+    <div class="course-track" id="courseTrack">
+      <div class="course-ball" id="courseBall" style="left:2%;">⛳</div>
+      <div class="course-hole">🚩</div>
+    </div>
+    <div class="course-flag"><span id="parLabel">파 3</span> · <span data-i18n="dist_label_pre">남은 거리</span> <b id="distLabel">110</b><span data-i18n="dist_label_unit">야드</span></div>
+
+    <div class="meter-wrap">
+      <div class="meter-label" id="meterLabel">파워를 탭으로 멈추세요!</div>
+      <div class="meter-bar" id="meterBar">
+        <div class="meter-fill" id="meterFill"></div>
+        <div class="meter-center" id="meterCenter" style="display:none;"></div>
+        <div class="meter-indicator" id="meterIndicator"></div>
+      </div>
+      <button class="swing-btn" id="swingBtn">탭!</button>
+    </div>
+  </div>
+
+  <div class="result-banner" id="resultBanner">&nbsp;</div>
+  <button class="newgame-btn" id="newGameBtn" data-i18n="btn_newround">새 라운드 시작</button>
+  <div class="hint" data-i18n="hint_controls">👆 첫 탭으로 파워, 두 번째 탭으로 정확도를 정해요 · 가운데에 가까울수록 정확해요</div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="pingpong.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🏓<br><span style="font-size:11.5px;">탁구왕 챌린지</span></a><a href="breakout.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">💥<br><span style="font-size:11.5px;">벽돌 깨기</span></a><a href="armor.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚔️<br><span style="font-size:11.5px;">전신갑주</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="modalEmoji">⛳</div>
+    <h2 id="modalTitle">라운드 종료!</h2>
+    <div class="result-line" id="modalScore">총 타수 0 (E)</div>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const HOLES = [
+    { par:3, dist:110 },
+    { par:4, dist:230 },
+    { par:5, dist:340 },
+  ];
+  const MAX_SHOT = 260; // yards at 100% power with perfect accuracy
+  const POWER_PERIOD = 1100;  // ms for one full 0->100->0 cycle
+  const ACC_PERIOD = 800;
+
+  const holeVal = document.getElementById('holeVal');
+  const strokeVal = document.getElementById('strokeVal');
+  const totalVal = document.getElementById('totalVal');
+  const bestVal = document.getElementById('bestVal');
+  const parLabel = document.getElementById('parLabel');
+  const distLabel = document.getElementById('distLabel');
+  const courseBall = document.getElementById('courseBall');
+  const meterLabel = document.getElementById('meterLabel');
+  const meterFill = document.getElementById('meterFill');
+  const meterCenter = document.getElementById('meterCenter');
+  const meterIndicator = document.getElementById('meterIndicator');
+  const swingBtn = document.getElementById('swingBtn');
+  const resultBanner = document.getElementById('resultBanner');
+  const overlay = document.getElementById('overlay');
+
+  let holeIndex, strokes, totalStrokes, holeScores, traveled, stage, rafId, phaseStartTs, power, over;
+  let lastModal = null;
+
+  const LANG = {
+    ko: {
+      title:'골프왕 챌린지', subtitle:'파워 → 정확도 순서로 탭! 3개 홀 최소 타수 도전',
+      stat_hole:'홀', stat_stroke:'타수', stat_total:'합계', stat_best:'최고기록',
+      dist_label_pre:'남은 거리', dist_label_unit:'야드',
+      hint_controls:'👆 첫 탭으로 파워, 두 번째 탭으로 정확도를 정해요 · 가운데에 가까울수록 정확해요',
+      btn_newround:'새 라운드 시작', btn_retry:'다시 하기',
+      meter_power:'⚡ 파워! 탭으로 멈추세요', meter_accuracy:'🎯 정확도! 가운데에서 멈추세요',
+      par_label:(p)=>`파 ${p}`,
+      flavor_slice:'슬라이스! ↗️', flavor_hook:'훅! ↖️', flavor_straight:'스트레이트! 👍', flavor_ok:'괜찮은 샷',
+      banner_holed:(s)=>`홀인! ⛳ (${s}타)`, popup_holed:'홀인! 🏌️',
+      banner_shot:(f,r)=>`${f} · 남은 거리 ${r}야드`,
+      title_eagle:'이글 러시! 🏆', title_nice:'멋진 라운드! 🎉', title_normal:'라운드 종료!',
+      modal_score:(s,d)=>`총 타수 ${s} (${d})`,
+    },
+    en: {
+      title:'Golf King Challenge', subtitle:'Tap for power, then tap for accuracy! Fewest strokes over 3 holes',
+      stat_hole:'Hole', stat_stroke:'Strokes', stat_total:'Total', stat_best:'Best',
+      dist_label_pre:'Distance left', dist_label_unit:'yd',
+      hint_controls:'👆 First tap sets power, second tap sets accuracy · closer to center is more accurate',
+      btn_newround:'New Round', btn_retry:'Try Again',
+      meter_power:'⚡ Power! Tap to stop', meter_accuracy:'🎯 Accuracy! Stop it in the middle',
+      par_label:(p)=>`Par ${p}`,
+      flavor_slice:'Slice! ↗️', flavor_hook:'Hook! ↖️', flavor_straight:'Straight! 👍', flavor_ok:'Decent shot',
+      banner_holed:(s)=>`Holed out! ⛳ (${s} strokes)`, popup_holed:'Holed out! 🏌️',
+      banner_shot:(f,r)=>`${f} · ${r}yd left`,
+      title_eagle:'Eagle Rush! 🏆', title_nice:'Nice round! 🎉', title_normal:'Round Over!',
+      modal_score:(s,d)=>`Total strokes ${s} (${d})`,
+    },
+    es: {
+      title:'Desafío de Golf', subtitle:'¡Toca para potencia, luego para precisión! Menos golpes en 3 hoyos',
+      stat_hole:'Hoyo', stat_stroke:'Golpes', stat_total:'Total', stat_best:'Mejor',
+      dist_label_pre:'Distancia restante', dist_label_unit:'yd',
+      hint_controls:'👆 El primer toque fija la potencia, el segundo la precisión · más cerca del centro es más preciso',
+      btn_newround:'Nueva ronda', btn_retry:'Reintentar',
+      meter_power:'⚡ ¡Potencia! Toca para detener', meter_accuracy:'🎯 ¡Precisión! Detén en el centro',
+      par_label:(p)=>`Par ${p}`,
+      flavor_slice:'¡Slice! ↗️', flavor_hook:'¡Hook! ↖️', flavor_straight:'¡Recto! 👍', flavor_ok:'Buen golpe',
+      banner_holed:(s)=>`¡Embocado! ⛳ (${s} golpes)`, popup_holed:'¡Embocado! 🏌️',
+      banner_shot:(f,r)=>`${f} · ${r}yd restantes`,
+      title_eagle:'¡Racha de Eagles! 🏆', title_nice:'¡Buena ronda! 🎉', title_normal:'¡Ronda terminada!',
+      modal_score:(s,d)=>`Total de golpes ${s} (${d})`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    if(holeIndex !== undefined && HOLES[holeIndex]) parLabel.textContent = t('par_label', HOLES[holeIndex].par);
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = t('title_' + lastModal.tier);
+      document.getElementById('modalScore').textContent = t('modal_score', lastModal.totalStrokes, formatScore(lastModal.diff));
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+
+  function loadBest(){
+    const b = localStorage.getItem('golfking_best');
+    bestVal.textContent = b ? formatScore(parseInt(b,10)) : '-';
+  }
+
+  function formatScore(diff){
+    if(diff === 0) return 'E';
+    return diff > 0 ? ('+'+diff) : String(diff);
+  }
+
+  function newGame(){
+    holeIndex = 0; totalStrokes = 0; holeScores = [];
+    over = false;
+    overlay.classList.remove('show');
+    loadBest();
+    startHole();
+  }
+
+  function startHole(){
+    strokes = 0; traveled = 0; stage = 'power'; power = 0;
+    const h = HOLES[holeIndex];
+    holeVal.textContent = (holeIndex+1) + '/' + HOLES.length;
+    parLabel.textContent = t('par_label', h.par);
+    strokeVal.textContent = '0';
+    updateTotalUI();
+    updateDistanceUI();
+    resultBanner.innerHTML = '&nbsp;';
+    beginPowerPhase();
+  }
+
+  function updateTotalUI(){
+    const parSoFar = HOLES.slice(0, holeIndex).reduce((s,h)=>s+h.par, 0);
+    const diff = totalStrokes - parSoFar;
+    totalVal.textContent = formatScore(diff);
+  }
+
+  function updateDistanceUI(){
+    const h = HOLES[holeIndex];
+    const remaining = Math.max(0, Math.round(h.dist - traveled));
+    distLabel.textContent = remaining;
+    const pct = Math.min(100, (traveled/h.dist)*100);
+    courseBall.style.left = (2 + pct*0.94) + '%';
+  }
+
+  function beginPowerPhase(){
+    stage = 'power';
+    meterLabel.textContent = t('meter_power');
+    meterCenter.style.display = 'none';
+    swingBtn.disabled = false;
+    cancelAnimationFrame(rafId);
+    phaseStartTs = performance.now();
+    rafId = requestAnimationFrame(powerTick);
+  }
+
+  function powerTick(ts){
+    if(stage !== 'power') return;
+    const elapsed = (ts - phaseStartTs) % POWER_PERIOD;
+    const t = elapsed / POWER_PERIOD; // 0..1
+    const pct = t < 0.5 ? (t*2*100) : (100 - (t-0.5)*2*100);
+    meterFill.style.width = pct + '%';
+    meterIndicator.style.left = 'calc(' + pct + '% - 2px)';
+    rafId = requestAnimationFrame(powerTick);
+  }
+
+  function beginAccuracyPhase(){
+    stage = 'accuracy';
+    meterLabel.textContent = t('meter_accuracy');
+    meterCenter.style.display = 'block';
+    cancelAnimationFrame(rafId);
+    phaseStartTs = performance.now();
+    rafId = requestAnimationFrame(accTick);
+  }
+
+  function accTick(ts){
+    if(stage !== 'accuracy') return;
+    const elapsed = (ts - phaseStartTs) % ACC_PERIOD;
+    const t = elapsed / ACC_PERIOD;
+    const pct = t < 0.5 ? (t*2*100) : (100 - (t-0.5)*2*100);
+    meterFill.style.width = pct + '%';
+    meterIndicator.style.left = 'calc(' + pct + '% - 2px)';
+    rafId = requestAnimationFrame(accTick);
+  }
+
+  function onSwingTap(){
+    if(over) return;
+    if(stage === 'power'){
+      power = parseFloat(meterFill.style.width) || 0;
+      SFX.click();
+      cancelAnimationFrame(rafId);
+      beginAccuracyPhase();
+    } else if(stage === 'accuracy'){
+      const accPct = parseFloat(meterFill.style.width) || 0;
+      const accuracy = (accPct - 50) * 2; // -100..100, 0 = perfect center
+      cancelAnimationFrame(rafId);
+      resolveShot(power, accuracy);
+    }
+  }
+
+  function resolveShot(powerPct, accuracy){
+    stage = 'resolving';
+    swingBtn.disabled = true;
+    strokes++;
+    totalStrokes++;
+    strokeVal.textContent = strokes;
+    updateTotalUI();
+
+    const accFactor = 1 - (Math.abs(accuracy)/100)*0.5;
+    const shotDist = MAX_SHOT * (powerPct/100) * accFactor;
+    traveled = Math.min(HOLES[holeIndex].dist, traveled + shotDist);
+    updateDistanceUI();
+
+    const remaining = HOLES[holeIndex].dist - traveled;
+    const holedOut = remaining <= 10;
+
+    let flavor;
+    if(Math.abs(accuracy) > 70) flavor = accuracy > 0 ? t('flavor_slice') : t('flavor_hook');
+    else if(Math.abs(accuracy) < 15) flavor = t('flavor_straight');
+    else flavor = t('flavor_ok');
+
+    if(holedOut){
+      SFX.win(); FX.flash('rgba(255,194,75,0.3)'); FX.vibrate([30,25,60]);
+      resultBanner.textContent = t('banner_holed', strokes);
+      FX.popText(t('popup_holed'), null, null, 'var(--amber)');
+      holeScores.push(strokes);
+      setTimeout(nextHoleOrEnd, 1200);
+    } else {
+      SFX.pop();
+      resultBanner.textContent = t('banner_shot', flavor, Math.round(remaining));
+      setTimeout(beginPowerPhase, 900);
+    }
+  }
+
+  function nextHoleOrEnd(){
+    holeIndex++;
+    if(holeIndex >= HOLES.length){
+      endRound();
+    } else {
+      startHole();
+    }
+  }
+
+  function endRound(){
+    over = true;
+    const totalPar = HOLES.reduce((s,h)=>s+h.par, 0);
+    const diff = totalStrokes - totalPar;
+    const best = localStorage.getItem('golfking_best');
+    if(best === null || diff < parseInt(best,10)){
+      localStorage.setItem('golfking_best', diff);
+    }
+    loadBest();
+    SFX.win(); FX.flash('rgba(45,212,191,0.28)');
+    let tier = 'normal';
+    if(diff <= -2) tier = 'eagle';
+    else if(diff <= 0) tier = 'nice';
+    lastModal = { tier, diff, totalStrokes };
+    document.getElementById('modalEmoji').textContent = diff <= 0 ? '🏆' : '⛳';
+    document.getElementById('modalTitle').textContent = t('title_' + tier);
+    document.getElementById('modalScore').textContent = t('modal_score', totalStrokes, formatScore(diff));
+    overlay.classList.add('show');
+  }
+
+  swingBtn.addEventListener('click', onSwingTap);
+  document.getElementById('retryBtn').addEventListener('click', () => { SFX.click(); newGame(); });
+  document.getElementById('newGameBtn').addEventListener('click', () => { SFX.click(); newGame(); });
+  window.addEventListener('keydown', e => { if(e.key === ' '){ e.preventDefault(); onSwingTap(); } });
+
+  newGame();
+  applyLang();
+})();
+</script>
+</body>
+</html>

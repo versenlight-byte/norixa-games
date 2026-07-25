@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>전신갑주 - Norixa</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="전신갑주 - 신앙은 순종과 불순종의 전쟁">
+<meta property="og:description" content="에베소서 6장의 전신갑주를 갖추고, 말씀을 미혹하는 화살을 순종으로 막아내는 영적 전쟁 게임. 회원가입 없이 바로 플레이하세요.">
+<meta property="og:image" content="https://versenlight-byte.github.io/norixa-games/games/armor-og.png">
+<meta property="og:url" content="https://versenlight-byte.github.io/norixa-games/games/armor.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="전신갑주 - 신앙은 순종과 불순종의 전쟁">
+<meta name="twitter:description" content="말씀을 미혹하는 화살을 순종으로 막아내는 영적 전쟁 게임">
+<meta name="twitter:image" content="https://versenlight-byte.github.io/norixa-games/games/armor-og.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="신앙은 순종과 불순종의 전쟁. 에베소서 6장의 전신갑주를 하나씩 갖추고, 말씀을 미혹하는 화살 웨이브를 순종으로 버텨내는 영적 전쟁 게임.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+    touch-action: manipulation;
+  }
+  .wrap{ width:100%; max-width:420px; display:flex; flex-direction:column; gap:14px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:32px; margin:6px 0 0;
+      background: linear-gradient(90deg, var(--amber), var(--coral));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:13px; }
+
+  .ad-slot{
+    width:100%; min-height:60px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:12px; background:rgba(245,240,234,0.03);
+  }
+
+  /* ---- armor tracker row ---- */
+  .armor-track{ display:flex; justify-content:space-between; gap:6px; }
+  .armor-slot{
+    flex:1; aspect-ratio:1/1; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:20px; background: rgba(245,240,234,0.05); border:1px solid var(--line); opacity:0.35;
+    transition: all .3s ease;
+  }
+  .armor-slot.on{ opacity:1; background: linear-gradient(135deg, var(--teal), var(--amber)); box-shadow:0 4px 14px rgba(255,194,75,0.35); }
+
+  /* ---- phase 1: equip card ---- */
+  #equipPhase{ display:flex; flex-direction:column; gap:14px; align-items:center; }
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .equip-card{
+    width:100%; background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:20px; border:1px solid var(--line); padding:26px 22px; text-align:center;
+    box-shadow: var(--shadow);
+  }
+  .equip-card .icon{ font-size:56px; margin-bottom:10px; }
+  .equip-card .name{ font-family:'Do Hyeon', sans-serif; font-size:24px; margin-bottom:4px; }
+  .equip-card .verse{ color:var(--amber); font-size:12px; font-family:'JetBrains Mono', monospace; margin-bottom:10px; }
+  .equip-card .desc{ color:var(--muted); font-size:14px; line-height:1.5; margin-bottom:4px; }
+  .equip-card .bonus{ color:var(--teal); font-size:12.5px; margin-top:8px; }
+  .equip-btn{
+    width:100%; padding:16px; border:none; cursor:pointer; border-radius:14px;
+    background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030;
+    font-weight:900; font-size:16px; font-family:'Noto Sans KR', sans-serif;
+  }
+
+  /* ---- phase 2: battle ---- */
+  #battlePhase{ display:none; flex-direction:column; gap:10px; }
+  .battle-hud{ display:flex; justify-content:space-between; align-items:center; }
+  .hp-row{ font-size:18px; letter-spacing:2px; }
+  .wave-time{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13.5px; }
+  .field{
+    position:relative; width:100%; height:340px; border-radius:16px; overflow:hidden;
+    background: linear-gradient(180deg, #1B1030 0%, #2E1B52 70%, #3A2166 100%);
+    border:1px solid var(--line); box-shadow: var(--shadow);
+  }
+  .lanes{ position:absolute; inset:0; display:flex; }
+  .lane{ flex:1; position:relative; border-right:1px dashed rgba(245,240,234,0.06); }
+  .lane:last-child{ border-right:none; }
+  .lane-tap{ position:absolute; inset:0; z-index:5; cursor:pointer; }
+  .arrow{ position:absolute; left:50%; top:0; transform:translate(-50%,0); font-size:26px; filter:drop-shadow(0 0 6px rgba(255,107,74,0.6)); }
+  .block-zone{ position:absolute; bottom:52px; left:0; right:0; height:34px; border-top:2px dashed rgba(45,212,191,0.7); border-bottom:2px dashed rgba(45,212,191,0.7); background: rgba(45,212,191,0.08); pointer-events:none; }
+  .block-zone::before{ content:'탭!'; position:absolute; left:6px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--teal); font-weight:900; }
+  .player-row{ position:absolute; bottom:6px; left:0; right:0; display:flex; }
+  .player-lane{ flex:1; text-align:center; font-size:30px; }
+  .flash{ position:absolute; inset:0; background: rgba(45,212,191,0.25); opacity:0; pointer-events:none; }
+  .flash.hit{ animation: flashOn .25s ease; }
+  @keyframes flashOn{ 0%{opacity:1;} 100%{opacity:0;} }
+  .field.shake{ animation: shake .3s ease; }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+
+  .sword-btn{
+    width:100%; padding:13px; border:none; cursor:pointer; border-radius:12px;
+    background: linear-gradient(135deg, var(--coral), var(--amber)); color:#1B1030;
+    font-weight:900; font-size:14px; font-family:'Noto Sans KR', sans-serif;
+  }
+  .sword-btn:disabled{ opacity:0.35; }
+
+  .hint{ text-align:center; color:var(--muted); font-size:12.5px; }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:360px;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line);
+    padding:28px 24px 24px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease;
+    box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:44px; margin-bottom:6px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:26px; margin:4px 0 8px; }
+  .modal .result-line{ color:var(--muted); font-size:13.5px; line-height:1.6; margin-bottom:4px; }
+  .btn-retry{
+    margin-top:20px; width:100%; padding:15px; border:none; cursor:pointer;
+    border-radius:14px; background: linear-gradient(135deg, var(--teal), var(--amber));
+    color:#1B1030; font-weight:900; font-size:16px; font-family:'Noto Sans KR', sans-serif;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1 data-i18n="title">전신갑주</h1>
+    <p data-i18n="subtitle">신앙은 순종과 불순종의 전쟁 · 말씀 위에 굳게 서라</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="armor-track" id="armorTrack"></div>
+
+  <div id="equipPhase" style="display:none;">
+    <div class="equip-card">
+      <div class="icon" id="eqIcon">🥋</div>
+      <div class="name" id="eqName">진리의 허리띠</div>
+      <div class="verse" id="eqVerse">엡 6:14</div>
+      <div class="desc" id="eqDesc">거짓에 흔들리지 않는 굳건함을 상징해요</div>
+      <div class="bonus" id="eqBonus">+ 생명력 1 증가</div>
+    </div>
+    <button class="equip-btn" id="equipBtn" data-i18n="btn_equip">🛡 장착하기</button>
+  </div>
+
+  <div id="battlePhase">
+    <div class="battle-hud">
+      <div class="hp-row" id="hpRow">❤️❤️❤️</div>
+      <div class="wave-time" id="waveTime">남은 시간 30초</div>
+    </div>
+    <div class="field" id="field">
+      <div class="lanes" id="lanes"></div>
+      <div class="block-zone"></div>
+      <div class="player-row" id="playerRow"></div>
+      <div class="flash" id="flash"></div>
+    </div>
+    <button class="sword-btn" id="swordBtn" style="display:none;" data-i18n="btn_sword">⚔️ 성령의 검 사용 (전체 화살 제거, 1회)</button>
+    <div class="hint" data-i18n="hint_battle">👆 초록 점선 구간(판정선)에 화살이 들어오면, 그 화살이 있는 레인을 탭하세요</div>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="colorsort.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🧴<br><span style="font-size:11.5px;">컬러 소트 퍼즐</span></a><a href="pingpong.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🏓<br><span style="font-size:11.5px;">탁구왕 챌린지</span></a><a href="wordchain.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🗣️<br><span style="font-size:11.5px;">끝말잇기</span></a></div></div>
+</div>
+
+<div class="overlay show" id="prologueOverlay">
+  <div class="modal">
+    <div class="emoji">⚔️</div>
+    <h2 data-i18n="prologue_title">신앙은 전쟁입니다</h2>
+    <div class="result-line" style="margin-bottom:14px; line-height:1.6;" data-i18n-html="prologue_body">
+      마귀는 하나님의 <b style="color:var(--amber);">말씀을 미혹</b>하여<br>
+      우리를 <b style="color:var(--coral);">불순종</b>하게 하고,<br>
+      결국 멸망으로 이끌려 합니다.<br><br>
+      그래서 신앙은 곧<br>
+      <b style="color:var(--teal);">순종과 불순종의 전쟁</b>이에요.<br><br>
+      갑주 하나하나를 갖출 때마다,<br>
+      말씀에 순종하기로 결심하는 거예요.
+    </div>
+    <button class="btn-retry" id="prologueStartBtn" data-i18n="prologue_btn">말씀으로 무장하기</button>
+  </div>
+</div>
+
+<div class="overlay" id="tutorialOverlay">
+  <div class="modal">
+    <div class="emoji">🔥⬇️</div>
+    <h2 data-i18n="tutorial_title">전투 방법</h2>
+    <div class="result-line" style="margin-bottom:10px; color:var(--amber);" data-i18n-html="tutorial_lead">
+      진리의 허리띠부터 성령의 검까지, 이 모든 것이<br>결국 하나님의 말씀 위에 서 있어요.
+    </div>
+    <div class="result-line" style="margin-bottom:14px;" data-i18n-html="tutorial_body">
+      마귀의 불화살(🔥)이 3개 레인 중 하나로 떨어져요.<br><br>
+      화살이 <b style="color:var(--teal);">초록 점선 구간</b>에 들어오면,<br>
+      <b style="color:var(--amber);">그 레인을 손가락으로 탭</b>해서 막으세요!<br><br>
+      너무 늦게 탭하거나 놓치면 생명력이 1 줄어요.<br>
+      생명력이 0이 되기 전에 시간을 버티면 승리예요.
+    </div>
+    <button class="btn-retry" id="tutorialStartBtn" data-i18n="tutorial_btn">🔥 전투 시작!</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="modalEmoji">🎉</div>
+    <h2 id="modalTitle">승리!</h2>
+    <div class="result-line" id="modalLine">전신갑주를 입고 끝까지 굳게 섰어요</div>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const ARMORS = [
+    { key:'belt', icon:'🥋', name:'진리의 허리띠', verse:'엡 6:14', desc:'하나님의 말씀으로 무장하라 — 진리의 허리띠는 곧 말씀이에요', bonus:'+ 생명력 1 증가', hp:1 },
+    { key:'breastplate', icon:'🦺', name:'의의 흉배', verse:'엡 6:14', desc:'말씀대로 행하고 죄를 짓지 않는 삶, 그것이 의의 흉배예요', bonus:'+ 생명력 1 증가', hp:1 },
+    { key:'shoes', icon:'👟', name:'평안의 복음의 신', verse:'엡 6:15', desc:'하나님의 말씀, 곧 천국복음을 전하는 것이 평안의 복음의 신이에요', bonus:'+ 생명력 1 증가', hp:1 },
+    { key:'shield', icon:'🛡️', name:'믿음의 방패', verse:'엡 6:16', desc:'행함이 있는 산 믿음으로 마귀의 궤계를 대적하는 것이 믿음의 방패예요', bonus:'전투에서 화살을 막을 수 있게 됨', hp:0 },
+    { key:'helmet', icon:'⛑️', name:'구원의 투구', verse:'엡 6:17', desc:'구원의 하나님을 기억함, 그것이 구원의 투구예요', bonus:'+ 생명력 1 증가', hp:1 },
+    { key:'sword', icon:'⚔️', name:'성령의 검', verse:'엡 6:17', desc:'성령으로 충만해야 말씀에 순종할 수 있어요 — 그것이 성령의 검이에요', bonus:'전투 중 1회 전체 화살 제거 가능', hp:0 },
+  ];
+  const LANES = 3;
+  let lastModal = null;
+
+  const LANG = {
+    ko: {
+      title:'전신갑주', subtitle:'신앙은 순종과 불순종의 전쟁 · 말씀 위에 굳게 서라',
+      btn_equip:'🛡 장착하기', btn_retry:'다시 하기',
+      btn_sword:'⚔️ 성령의 검 사용 (전체 화살 제거, 1회)', sword_used:'⚔️ 사용 완료',
+      hint_battle:'👆 초록 점선 구간(판정선)에 화살이 들어오면, 그 화살이 있는 레인을 탭하세요',
+      wave_time:(s)=>`남은 시간 ${s}초`,
+      prologue_title:'신앙은 전쟁입니다',
+      prologue_body:'마귀는 하나님의 <b style="color:var(--amber);">말씀을 미혹</b>하여<br>우리를 <b style="color:var(--coral);">불순종</b>하게 하고,<br>결국 멸망으로 이끌려 합니다.<br><br>그래서 신앙은 곧<br><b style="color:var(--teal);">순종과 불순종의 전쟁</b>이에요.<br><br>갑주 하나하나를 갖출 때마다,<br>말씀에 순종하기로 결심하는 거예요.',
+      prologue_btn:'말씀으로 무장하기',
+      tutorial_title:'전투 방법',
+      tutorial_lead:'진리의 허리띠부터 성령의 검까지, 이 모든 것이<br>결국 하나님의 말씀 위에 서 있어요.',
+      tutorial_body:'마귀의 불화살(🔥)이 3개 레인 중 하나로 떨어져요.<br><br>화살이 <b style="color:var(--teal);">초록 점선 구간</b>에 들어오면,<br><b style="color:var(--amber);">그 레인을 손가락으로 탭</b>해서 막으세요!<br><br>너무 늦게 탭하거나 놓치면 생명력이 1 줄어요.<br>생명력이 0이 되기 전에 시간을 버티면 승리예요.',
+      tutorial_btn:'🔥 전투 시작!',
+      modal_win_title:'순종으로 끝까지 섰어요!',
+      modal_win_line:'미혹을 이겨내고 말씀 위에 굳게 섰어요. "이러므로 하나님의 전신갑주를 취하라" (엡 6:13)',
+      modal_lose_title:'미혹에 무너졌어요',
+      modal_lose_line:(s)=>`${s}초 버텼어요. 불순종은 곧 무너짐이에요. 다시 말씀을 굳게 붙잡고 도전해보세요.`,
+      armor_name_belt:'진리의 허리띠', armor_verse_belt:'엡 6:14',
+      armor_desc_belt:'하나님의 말씀으로 무장하라 — 진리의 허리띠는 곧 말씀이에요', armor_bonus_belt:'+ 생명력 1 증가',
+      armor_name_breastplate:'의의 흉배', armor_verse_breastplate:'엡 6:14',
+      armor_desc_breastplate:'말씀대로 행하고 죄를 짓지 않는 삶, 그것이 의의 흉배예요', armor_bonus_breastplate:'+ 생명력 1 증가',
+      armor_name_shoes:'평안의 복음의 신', armor_verse_shoes:'엡 6:15',
+      armor_desc_shoes:'하나님의 말씀, 곧 천국복음을 전하는 것이 평안의 복음의 신이에요', armor_bonus_shoes:'+ 생명력 1 증가',
+      armor_name_shield:'믿음의 방패', armor_verse_shield:'엡 6:16',
+      armor_desc_shield:'행함이 있는 산 믿음으로 마귀의 궤계를 대적하는 것이 믿음의 방패예요', armor_bonus_shield:'전투에서 화살을 막을 수 있게 됨',
+      armor_name_helmet:'구원의 투구', armor_verse_helmet:'엡 6:17',
+      armor_desc_helmet:'구원의 하나님을 기억함, 그것이 구원의 투구예요', armor_bonus_helmet:'+ 생명력 1 증가',
+      armor_name_sword:'성령의 검', armor_verse_sword:'엡 6:17',
+      armor_desc_sword:'성령으로 충만해야 말씀에 순종할 수 있어요 — 그것이 성령의 검이에요', armor_bonus_sword:'전투 중 1회 전체 화살 제거 가능',
+    },
+    en: {
+      title:'Armor of God', subtitle:'Faith is a war between obedience and disobedience · Stand firm on the Word',
+      btn_equip:'🛡 Equip', btn_retry:'Try Again',
+      btn_sword:'⚔️ Use Sword of the Spirit (clear all arrows, once)', sword_used:'⚔️ Used',
+      hint_battle:'👆 When an arrow enters the green dashed zone, tap that lane',
+      wave_time:(s)=>`${s}s remaining`,
+      prologue_title:'Faith Is a War',
+      prologue_body:'The devil <b style="color:var(--amber);">deceives us about God\'s Word</b><br>to make us <b style="color:var(--coral);">disobey</b>,<br>trying to lead us to destruction.<br><br>So faith is really<br><b style="color:var(--teal);">a war between obedience and disobedience</b>.<br><br>Each piece of armor you put on<br>is a decision to obey the Word.',
+      prologue_btn:'Arm Yourself with the Word',
+      tutorial_title:'How to Battle',
+      tutorial_lead:'From the belt of truth to the sword of the Spirit, all of it<br>stands on God\'s Word in the end.',
+      tutorial_body:"The devil's fiery arrows (🔥) fall into one of 3 lanes.<br><br>When an arrow enters the <b style=\"color:var(--teal);\">green dashed zone</b>,<br><b style=\"color:var(--amber);\">tap that lane</b> to block it!<br><br>Tap too late or miss, and you lose 1 HP.<br>Survive until time runs out before HP hits 0 to win.",
+      tutorial_btn:'🔥 Start Battle!',
+      modal_win_title:'You Stood Firm Through Obedience!',
+      modal_win_line:'You overcame the deception and stood firm on the Word. "Therefore put on the full armor of God" (Eph 6:13)',
+      modal_lose_title:'You Fell to Deception',
+      modal_lose_line:(s)=>`You survived ${s}s. Disobedience leads to falling. Grasp the Word firmly and try again.`,
+      armor_name_belt:'Belt of Truth', armor_verse_belt:'Eph 6:14',
+      armor_desc_belt:"Arm yourself with God's Word — the belt of truth is the Word itself", armor_bonus_belt:'+1 HP',
+      armor_name_breastplate:'Breastplate of Righteousness', armor_verse_breastplate:'Eph 6:14',
+      armor_desc_breastplate:'Living by the Word and not sinning — that is the breastplate of righteousness', armor_bonus_breastplate:'+1 HP',
+      armor_name_shoes:'Shoes of the Gospel of Peace', armor_verse_shoes:'Eph 6:15',
+      armor_desc_shoes:"Sharing God's Word, the gospel of the kingdom — that is the shoes of peace", armor_bonus_shoes:'+1 HP',
+      armor_name_shield:'Shield of Faith', armor_verse_shield:'Eph 6:16',
+      armor_desc_shield:"Resisting the devil's schemes with a living, active faith — that is the shield of faith", armor_bonus_shield:'Lets you block arrows in battle',
+      armor_name_helmet:'Helmet of Salvation', armor_verse_helmet:'Eph 6:17',
+      armor_desc_helmet:'Remembering the God of our salvation — that is the helmet of salvation', armor_bonus_helmet:'+1 HP',
+      armor_name_sword:'Sword of the Spirit', armor_verse_sword:'Eph 6:17',
+      armor_desc_sword:'Only by being filled with the Spirit can we obey the Word — that is the sword of the Spirit', armor_bonus_sword:'Once per battle, clear all arrows',
+    },
+    es: {
+      title:'Armadura de Dios', subtitle:'La fe es una guerra entre obediencia y desobediencia · Permanece firme en la Palabra',
+      btn_equip:'🛡 Equipar', btn_retry:'Reintentar',
+      btn_sword:'⚔️ Usar espada del Espíritu (elimina todas las flechas, una vez)', sword_used:'⚔️ Usada',
+      hint_battle:'👆 Cuando una flecha entre en la zona verde punteada, toca ese carril',
+      wave_time:(s)=>`${s}s restantes`,
+      prologue_title:'La Fe Es una Guerra',
+      prologue_body:'El diablo <b style="color:var(--amber);">engaña sobre la Palabra de Dios</b><br>para hacernos <b style="color:var(--coral);">desobedecer</b>,<br>tratando de llevarnos a la destrucción.<br><br>Por eso la fe es en realidad<br><b style="color:var(--teal);">una guerra entre obediencia y desobediencia</b>.<br><br>Cada pieza de armadura que te pones<br>es una decisión de obedecer la Palabra.',
+      prologue_btn:'Vístete con la Palabra',
+      tutorial_title:'Cómo Combatir',
+      tutorial_lead:'Desde el cinto de la verdad hasta la espada del Espíritu, todo<br>se sostiene al final sobre la Palabra de Dios.',
+      tutorial_body:'Las flechas de fuego (🔥) del diablo caen en uno de 3 carriles.<br><br>Cuando una flecha entra en la <b style="color:var(--teal);">zona verde punteada</b>,<br><b style="color:var(--amber);">toca ese carril</b> para bloquearla!<br><br>Si tocas muy tarde o fallas, pierdes 1 de vida.<br>Sobrevive hasta que se acabe el tiempo antes de llegar a 0 para ganar.',
+      tutorial_btn:'🔥 ¡Empezar Batalla!',
+      modal_win_title:'¡Permaneciste Firme por la Obediencia!',
+      modal_win_line:'Venciste el engaño y permaneciste firme en la Palabra. "Por tanto, tomad toda la armadura de Dios" (Ef 6:13)',
+      modal_lose_title:'Caíste ante el Engaño',
+      modal_lose_line:(s)=>`Sobreviviste ${s}s. La desobediencia lleva a la caída. Aférrate a la Palabra e inténtalo de nuevo.`,
+      armor_name_belt:'Cinto de la Verdad', armor_verse_belt:'Ef 6:14',
+      armor_desc_belt:'Vístete con la Palabra de Dios — el cinto de la verdad es la Palabra misma', armor_bonus_belt:'+1 de vida',
+      armor_name_breastplate:'Coraza de Justicia', armor_verse_breastplate:'Ef 6:14',
+      armor_desc_breastplate:'Vivir conforme a la Palabra y no pecar, eso es la coraza de justicia', armor_bonus_breastplate:'+1 de vida',
+      armor_name_shoes:'Calzados del Evangelio de la Paz', armor_verse_shoes:'Ef 6:15',
+      armor_desc_shoes:'Compartir la Palabra de Dios, el evangelio del reino, eso son los calzados de la paz', armor_bonus_shoes:'+1 de vida',
+      armor_name_shield:'Escudo de la Fe', armor_verse_shield:'Ef 6:16',
+      armor_desc_shield:'Resistir las artimañas del diablo con una fe viva que actúa, eso es el escudo de la fe', armor_bonus_shield:'Te permite bloquear flechas en la batalla',
+      armor_name_helmet:'Yelmo de la Salvación', armor_verse_helmet:'Ef 6:17',
+      armor_desc_helmet:'Recordar al Dios de nuestra salvación, eso es el yelmo de la salvación', armor_bonus_helmet:'+1 de vida',
+      armor_name_sword:'Espada del Espíritu', armor_verse_sword:'Ef 6:17',
+      armor_desc_sword:'Solo estando llenos del Espíritu podemos obedecer la Palabra, eso es la espada del Espíritu', armor_bonus_sword:'Una vez por batalla, elimina todas las flechas',
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    if(equipPhase.style.display !== 'none') showEquipCard();
+    if(swordUsed) swordBtn.textContent = t('sword_used');
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = lastModal.won ? t('modal_win_title') : t('modal_lose_title');
+      document.getElementById('modalLine').textContent = lastModal.won ? t('modal_win_line') : t('modal_lose_line', lastModal.survived);
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+  const WAVE_SECONDS = 30;
+  const BLOCK_MIN = 68, BLOCK_MAX = 100; // % position considered blockable
+
+  const armorTrack = document.getElementById('armorTrack');
+  const eqIcon = document.getElementById('eqIcon');
+  const eqName = document.getElementById('eqName');
+  const eqVerse = document.getElementById('eqVerse');
+  const eqDesc = document.getElementById('eqDesc');
+  const eqBonus = document.getElementById('eqBonus');
+  const equipBtn = document.getElementById('equipBtn');
+  const equipPhase = document.getElementById('equipPhase');
+  const battlePhase = document.getElementById('battlePhase');
+  const hpRow = document.getElementById('hpRow');
+  const waveTimeEl = document.getElementById('waveTime');
+  const lanesEl = document.getElementById('lanes');
+  const playerRow = document.getElementById('playerRow');
+  const field = document.getElementById('field');
+  const flashEl = document.getElementById('flash');
+  const swordBtn = document.getElementById('swordBtn');
+  const overlay = document.getElementById('overlay');
+  const retryBtn = document.getElementById('retryBtn');
+
+  let equipIndex = 0;
+  let maxHP = 3, hp = 3;
+  let shieldOn = false, swordAvailable = false, swordUsed = false;
+  let arrows = [], arrowId = 0;
+  let spawnTimeout = null, tickInterval = null, countdownInterval = null;
+  let waveLeft = WAVE_SECONDS, elapsedMs = 0, over = false;
+
+  function renderArmorTrack(){
+    armorTrack.innerHTML = '';
+    ARMORS.forEach((a, i) => {
+      const d = document.createElement('div');
+      d.className = 'armor-slot' + (i < equipIndex ? ' on' : '');
+      d.textContent = a.icon;
+      armorTrack.appendChild(d);
+    });
+  }
+
+  function showEquipCard(){
+    const a = ARMORS[equipIndex];
+    eqIcon.textContent = a.icon;
+    eqName.textContent = t('armor_name_' + a.key);
+    eqVerse.textContent = t('armor_verse_' + a.key);
+    eqDesc.textContent = t('armor_desc_' + a.key);
+    eqBonus.textContent = t('armor_bonus_' + a.key);
+  }
+
+  function onEquip(){
+    SFX.correct(); FX.flash('rgba(45,212,191,0.22)'); FX.vibrate(14);
+    const a = ARMORS[equipIndex];
+    maxHP += a.hp;
+    if(a.key === 'shield') shieldOn = true;
+    if(a.key === 'sword') swordAvailable = true;
+    equipIndex++;
+    renderArmorTrack();
+    if(equipIndex < ARMORS.length){
+      showEquipCard();
+    } else {
+      startBattle();
+    }
+  }
+
+  function renderHP(){
+    hpRow.textContent = '❤️'.repeat(Math.max(0,hp)) + '🖤'.repeat(Math.max(0, maxHP-hp));
+  }
+
+  function buildLanes(){
+    lanesEl.innerHTML = '';
+    playerRow.innerHTML = '';
+    for(let i=0;i<LANES;i++){
+      const lane = document.createElement('div');
+      lane.className = 'lane';
+      lane.dataset.lane = i;
+      const tap = document.createElement('div');
+      tap.className = 'lane-tap';
+      tap.addEventListener('click', () => onLaneTap(i));
+      lane.appendChild(tap);
+      lanesEl.appendChild(lane);
+
+      const p = document.createElement('div');
+      p.className = 'player-lane';
+      p.textContent = '🧍';
+      playerRow.appendChild(p);
+    }
+  }
+
+  function startBattle(){
+    equipPhase.style.display = 'none';
+    battlePhase.style.display = 'flex';
+    hp = maxHP;
+    renderHP();
+    buildLanes();
+    swordBtn.style.display = swordAvailable ? 'block' : 'none';
+    swordBtn.disabled = false;
+    swordUsed = false;
+    waveLeft = WAVE_SECONDS;
+    waveTimeEl.textContent = t('wave_time', waveLeft);
+    elapsedMs = 0;
+    over = false;
+    arrows = [];
+    document.getElementById('tutorialOverlay').classList.add('show');
+  }
+
+  document.getElementById('tutorialStartBtn').addEventListener('click', () => {
+    SFX.click();
+    document.getElementById('tutorialOverlay').classList.remove('show');
+    beginWave();
+  });
+
+  function beginWave(){
+    countdownInterval = setInterval(() => {
+      if(over) return;
+      waveLeft--;
+      waveTimeEl.textContent = t('wave_time', Math.max(0,waveLeft));
+      if(waveLeft <= 0){ endBattle(true); }
+    }, 1000);
+
+    tickInterval = setInterval(gameTick, 30);
+    scheduleSpawn();
+  }
+
+  function scheduleSpawn(){
+    if(over) return;
+    const progress = Math.min(1, elapsedMs / (WAVE_SECONDS*1000));
+    const delay = 1000 - progress*550; // 1000ms -> 450ms
+    spawnTimeout = setTimeout(() => {
+      if(!over){ spawnArrow(); scheduleSpawn(); }
+    }, delay);
+  }
+
+  function spawnArrow(){
+    const lane = Math.floor(Math.random()*LANES);
+    const el = document.createElement('div');
+    el.className = 'arrow';
+    el.textContent = '🔥';
+    lanesEl.children[lane].appendChild(el);
+    arrows.push({ id: arrowId++, lane, pos: 0, el });
+  }
+
+  function gameTick(){
+    if(over) return;
+    elapsedMs += 30;
+    const progress = Math.min(1, elapsedMs / (WAVE_SECONDS*1000));
+    const speed = 1.6 + progress*1.6; // % per tick
+    for(let i=arrows.length-1;i>=0;i--){
+      const a = arrows[i];
+      a.pos += speed;
+      a.el.style.top = a.pos + '%';
+      if(a.pos >= 100){
+        a.el.remove();
+        arrows.splice(i,1);
+        takeDamage();
+      }
+    }
+  }
+
+  function onLaneTap(lane){
+    if(over) return;
+    let best = null;
+    for(const a of arrows){
+      if(a.lane === lane && a.pos >= BLOCK_MIN && a.pos <= BLOCK_MAX){
+        if(!best || a.pos > best.pos) best = a;
+      }
+    }
+    if(best && shieldOn){
+      SFX.pop();
+      best.el.remove();
+      arrows = arrows.filter(a => a.id !== best.id);
+      flashEl.classList.remove('hit'); void flashEl.offsetWidth; flashEl.classList.add('hit');
+      FX.popText('순종! ✝️', null, null, 'var(--teal)');
+    }
+  }
+
+  function takeDamage(){
+    SFX.wrong(); FX.shake(); FX.vibrate(30);
+    FX.popText('불순종...', null, null, 'var(--coral)');
+    hp--;
+    renderHP();
+    field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake');
+    if(hp <= 0){ endBattle(false); }
+  }
+
+  swordBtn.addEventListener('click', () => {
+    if(swordUsed || over) return;
+    SFX.win(); FX.flash('rgba(255,194,75,0.32)'); FX.vibrate([35,30,70]);
+    arrows.forEach(a => a.el.remove());
+    arrows = [];
+    swordUsed = true;
+    swordBtn.disabled = true;
+    swordBtn.textContent = t('sword_used');
+  });
+
+  function endBattle(won){
+    if(over) return;
+    over = true;
+    clearInterval(countdownInterval);
+    clearInterval(tickInterval);
+    clearTimeout(spawnTimeout);
+
+    const survived = Math.floor(elapsedMs/1000);
+    const bestSurvive = parseInt(localStorage.getItem('armor_best_survive') || '0', 10);
+    if(survived > bestSurvive) localStorage.setItem('armor_best_survive', survived);
+
+    lastModal = { won, survived };
+    if(won){
+      SFX.win(); FX.flash('rgba(255,194,75,0.32)'); FX.vibrate([35,30,70]);
+      const wins = parseInt(localStorage.getItem('armor_wins') || '0', 10) + 1;
+      localStorage.setItem('armor_wins', wins);
+      document.getElementById('modalEmoji').textContent = '🎉';
+      document.getElementById('modalTitle').textContent = t('modal_win_title');
+      document.getElementById('modalLine').textContent = t('modal_win_line');
+    } else {
+      SFX.lose(); FX.shake(); FX.vibrate([70,40,70]);
+      document.getElementById('modalEmoji').textContent = '😔';
+      document.getElementById('modalTitle').textContent = t('modal_lose_title');
+      document.getElementById('modalLine').textContent = t('modal_lose_line', survived);
+    }
+    overlay.classList.add('show');
+  }
+
+  function resetGame(){
+    equipIndex = 0; maxHP = 3; hp = 3; shieldOn = false; swordAvailable = false; swordUsed = false;
+    arrows.forEach(a => a.el.remove()); arrows = [];
+    clearInterval(countdownInterval); clearInterval(tickInterval); clearTimeout(spawnTimeout);
+    overlay.classList.remove('show');
+    battlePhase.style.display = 'none';
+    equipPhase.style.display = 'flex';
+    renderArmorTrack();
+    showEquipCard();
+  }
+
+  equipBtn.addEventListener('click', onEquip);
+  retryBtn.addEventListener('click', resetGame);
+
+  document.getElementById('prologueStartBtn').addEventListener('click', () => {
+    SFX.click();
+    document.getElementById('prologueOverlay').classList.remove('show');
+    equipPhase.style.display = 'flex';
+  });
+
+  renderArmorTrack();
+  showEquipCard();
+  applyLang();
+})();
+</script>
+</body>
+</html>

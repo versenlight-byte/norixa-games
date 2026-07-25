@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>벽돌 깨기 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="공을 튕겨 벽돌을 부수는 스트레스 해소용 벽돌 깨기 게임. 드래그와 스와이프로 플레이.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B; --purple:#8B7CF6; --pink:#F472B6;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+    touch-action: none; overscroll-behavior:none;
+  }
+  .wrap{ width:100%; max-width:400px; display:flex; flex-direction:column; gap:10px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:28px; margin:4px 0 0;
+      background: linear-gradient(90deg, var(--coral), var(--amber));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:4px 0 0; color:var(--muted); font-size:12.5px; }
+
+  .ad-slot{
+    width:100%; min-height:50px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:11px; background:rgba(245,240,234,0.03);
+  }
+
+  .top-row{ display:flex; gap:8px; }
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .stat-box{
+    flex:1; text-align:center; padding:7px 4px; border-radius:12px;
+    background: rgba(245,240,234,0.06); border:1px solid var(--line);
+  }
+  .stat-box .lbl{ font-size:10px; color:var(--muted); }
+  .stat-box .val{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:15px; }
+
+  .board-wrap{
+    position:relative; border-radius:14px; overflow:hidden;
+    border:1px solid var(--line); background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  #gameCanvas{ display:block; width:100%; height:auto; touch-action:none; }
+  .hint{ text-align:center; color:var(--muted); font-size:12px; }
+
+  .newgame-btn{
+    border:none; cursor:pointer; border-radius:12px; padding:10px; width:100%;
+    background: rgba(245,240,234,0.08); border:1px solid var(--line);
+    color:var(--muted); font-size:12.5px; font-family:'Noto Sans KR', sans-serif;
+  }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:340px;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line);
+    padding:26px 22px 22px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease;
+    box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:40px; margin-bottom:4px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:24px; margin:4px 0 10px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13px; margin-bottom:4px; }
+  .btn-retry{
+    margin-top:18px; width:100%; padding:14px; border:none; cursor:pointer;
+    border-radius:14px; background: linear-gradient(135deg, var(--teal), var(--amber));
+    color:#1B1030; font-weight:900; font-size:15px; font-family:'Noto Sans KR', sans-serif;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1 data-i18n="title">벽돌 깨기</h1>
+    <p data-i18n="subtitle">공을 튕겨서 벽돌을 시원하게 부숴보세요</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="top-row">
+    <div class="stat-box"><div class="lbl" data-i18n="stat_score">점수</div><div class="val" id="score">0</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_lives">목숨</div><div class="val" id="lives">❤❤❤</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_level">레벨</div><div class="val" id="level">1</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_best">최고 점수</div><div class="val" id="best">0</div></div>
+  </div>
+
+  <div class="board-wrap">
+    <canvas id="gameCanvas" width="360" height="540"></canvas>
+  </div>
+  <div class="hint">📱 드래그로 패들 이동 · 손을 떼면 공 발사</div>
+
+  <button class="newgame-btn" id="newGameBtn" data-i18n="btn_newgame">새 게임 시작</button>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="wordchain.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🗣️<br><span style="font-size:11.5px;">끝말잇기</span></a><a href="armor.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚔️<br><span style="font-size:11.5px;">전신갑주</span></a><a href="pingpong.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🏓<br><span style="font-size:11.5px;">탁구왕 챌린지</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="modalEmoji">💥</div>
+    <h2 id="modalTitle">게임 오버</h2>
+    <div class="result-line" id="modalScore">점수 0</div>
+    <div class="result-line" id="modalLevel">레벨 1</div>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const livesEl = document.getElementById('lives');
+  const levelEl = document.getElementById('level');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+
+  const ROW_COLORS = ['#FF6B4A','#FFC24B','#2DD4BF','#8B7CF6','#F472B6'];
+  const ROW_POINTS = [50,40,30,20,10];
+
+  let W, H, scale;
+  let paddle, ball, bricks, score, lives, level, state, best, rafId, lastTs;
+  let lastModal = null;
+
+  const LANG = {
+    ko: {
+      title:'벽돌 깨기', subtitle:'공을 튕겨서 벽돌을 시원하게 부숴보세요',
+      stat_score:'점수', stat_lives:'목숨', stat_level:'레벨', stat_best:'최고 점수',
+      btn_newgame:'새 게임 시작', btn_retry:'다시 하기', modal_title:'게임 오버',
+      modal_score:(s)=>`점수 ${s}`, modal_level:(l)=>`레벨 ${l}`,
+    },
+    en: {
+      title:'Breakout', subtitle:'Bounce the ball to smash all the bricks',
+      stat_score:'Score', stat_lives:'Lives', stat_level:'Level', stat_best:'Best',
+      btn_newgame:'New Game', btn_retry:'Try Again', modal_title:'Game Over',
+      modal_score:(s)=>`Score ${s}`, modal_level:(l)=>`Level ${l}`,
+    },
+    es: {
+      title:'Rompe Ladrillos', subtitle:'Rebota la bola para romper todos los ladrillos',
+      stat_score:'Puntos', stat_lives:'Vidas', stat_level:'Nivel', stat_best:'Mejor',
+      btn_newgame:'Nueva partida', btn_retry:'Reintentar', modal_title:'Fin del juego',
+      modal_score:(s)=>`Puntos ${s}`, modal_level:(l)=>`Nivel ${l}`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = t('modal_title');
+      document.getElementById('modalScore').textContent = t('modal_score', lastModal.score);
+      document.getElementById('modalLevel').textContent = t('modal_level', lastModal.level);
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+
+  function resize(){
+    const wrapWidth = canvas.parentElement.clientWidth;
+    scale = wrapWidth / 360;
+    canvas.width = wrapWidth;
+    canvas.height = 450 * scale;
+    W = canvas.width; H = canvas.height;
+    layoutEntities();
+    draw();
+  }
+
+  function layoutEntities(){
+    const pw = 60*scale, ph = 18*scale;
+    if(!paddle) paddle = { w: pw, h: ph, x: (W-pw)/2, y: H - 30*scale, speed: 420*scale };
+    else { paddle.w = pw; paddle.h = ph; paddle.y = H - 30*scale; paddle.x = Math.min(Math.max(paddle.x,0), W-pw); }
+  }
+
+  function buildBricks(lvl){
+    const rows = Math.min(5 + Math.floor((lvl-1)/2), 7);
+    const cols = 8;
+    const gap = 5*scale;
+    const top = 46*scale;
+    const brickW = (W - gap*(cols+1)) / cols;
+    const brickH = 16*scale;
+    const arr = [];
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        arr.push({
+          x: gap + c*(brickW+gap),
+          y: top + r*(brickH+gap),
+          w: brickW, h: brickH,
+          color: ROW_COLORS[r % ROW_COLORS.length],
+          points: ROW_POINTS[r % ROW_POINTS.length],
+          alive: true
+        });
+      }
+    }
+    return arr;
+  }
+
+  function resetBall(){
+    const speed = (300 + (level-1)*25) * scale;
+    ball = {
+      r: 6*scale,
+      x: paddle.x + paddle.w/2,
+      y: paddle.y - 8*scale,
+      vx: 0, vy: 0,
+      speed: speed,
+      onPaddle: true
+    };
+  }
+
+  function launchBall(){
+    if(state !== 'ready') return;
+    const angle = (-60 - Math.random()*60) * Math.PI/180; // upward
+    ball.vx = ball.speed * Math.cos(angle);
+    ball.vy = ball.speed * Math.sin(angle);
+    ball.onPaddle = false;
+    state = 'playing';
+  }
+
+  function newLevel(){
+    bricks = buildBricks(level);
+    resetBall();
+    state = 'ready';
+  }
+
+  function newGame(){
+    score = 0; lives = 3; level = 1; state = 'ready';
+    best = parseInt(localStorage.getItem('breakout_best') || '0', 10);
+    bricks = [];
+    updateStats();
+    overlay.classList.remove('show');
+    resize();
+    newLevel();
+    lastTs = performance.now();
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function updateStats(){
+    scoreEl.textContent = score;
+    livesEl.textContent = '❤'.repeat(Math.max(lives,0)) + '🖤'.repeat(Math.max(3-lives,0));
+    levelEl.textContent = level;
+    bestEl.textContent = best;
+  }
+
+  function movePaddleTo(clientX){
+    const rect = canvas.getBoundingClientRect();
+    let x = (clientX - rect.left) - paddle.w/2;
+    x = Math.max(0, Math.min(W - paddle.w, x));
+    paddle.x = x;
+    if(state === 'ready') ball.x = paddle.x + paddle.w/2;
+  }
+
+  function update(dt){
+    if(state !== 'playing'){ return; }
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+
+    if(ball.x - ball.r < 0){ ball.x = ball.r; ball.vx *= -1; }
+    if(ball.x + ball.r > W){ ball.x = W - ball.r; ball.vx *= -1; }
+    if(ball.y - ball.r < 0){ ball.y = ball.r; ball.vy *= -1; }
+
+    // paddle collision (swept check against previous position to avoid tunneling through the thin paddle)
+    const prevBottom = ball.y - ball.vy*dt + ball.r;
+    const currBottom = ball.y + ball.r;
+    if(ball.vy > 0 && prevBottom <= paddle.y + paddle.h && currBottom >= paddle.y &&
+       ball.x >= paddle.x - ball.r && ball.x <= paddle.x + paddle.w + ball.r){
+      const hit = (ball.x - (paddle.x + paddle.w/2)) / (paddle.w/2); // -1..1
+      const angle = Math.max(-1,Math.min(1,hit)) * 60 * Math.PI/180;
+      ball.vx = ball.speed * Math.sin(angle);
+      ball.vy = -Math.abs(ball.speed * Math.cos(angle));
+      ball.y = paddle.y - ball.r;
+    }
+
+    // brick collisions
+    for(const b of bricks){
+      if(!b.alive) continue;
+      if(ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
+         ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h){
+        b.alive = false;
+        SFX.pop();
+        score += b.points;
+        const overlapX = Math.min(ball.x + ball.r - b.x, b.x + b.w - (ball.x - ball.r));
+        const overlapY = Math.min(ball.y + ball.r - b.y, b.y + b.h - (ball.y - ball.r));
+        if(overlapX < overlapY) ball.vx *= -1; else ball.vy *= -1;
+        updateStats();
+        if(score > best){ best = score; localStorage.setItem('breakout_best', best); }
+        break;
+      }
+    }
+
+    if(bricks.every(b => !b.alive)){
+      SFX.win(); FX.flash('rgba(255,194,75,0.32)'); FX.vibrate([35,30,70]);
+      level++;
+      updateStats();
+      newLevel();
+      return;
+    }
+
+    if(ball.y - ball.r > H){
+      lives--;
+      SFX.wrong(); FX.shake(); FX.vibrate(30);
+      updateStats();
+      if(lives <= 0){
+        endGame();
+      } else {
+        resetBall();
+        state = 'ready';
+      }
+    }
+  }
+
+  function draw(){
+    ctx.fillStyle = '#1B1030';
+    ctx.fillRect(0,0,W,H);
+
+    for(const b of bricks){
+      if(!b.alive) continue;
+      ctx.fillStyle = b.color;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.strokeRect(b.x, b.y, b.w, b.h);
+    }
+
+    if(paddle){
+      ctx.fillStyle = 'rgba(245,240,234,0.9)';
+      const r = 8*scale;
+      ctx.beginPath();
+      ctx.moveTo(paddle.x + r, paddle.y);
+      ctx.arcTo(paddle.x+paddle.w, paddle.y, paddle.x+paddle.w, paddle.y+paddle.h, r);
+      ctx.arcTo(paddle.x+paddle.w, paddle.y+paddle.h, paddle.x, paddle.y+paddle.h, r);
+      ctx.arcTo(paddle.x, paddle.y+paddle.h, paddle.x, paddle.y, r);
+      ctx.arcTo(paddle.x, paddle.y, paddle.x+paddle.w, paddle.y, r);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    if(ball){
+      ctx.fillStyle = '#FFC24B';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    if(state === 'ready'){
+      ctx.fillStyle = 'rgba(245,240,234,0.55)';
+      ctx.font = (13*scale) + 'px Noto Sans KR, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('손을 떼면 발사', W/2, H/2);
+    }
+  }
+
+  function endGame(){
+    state = 'over';
+    SFX.lose(); FX.shake(); FX.vibrate([70,40,70]);
+    cancelAnimationFrame(rafId);
+    document.getElementById('modalEmoji').textContent = '💥';
+    lastModal = { score, level };
+    document.getElementById('modalTitle').textContent = t('modal_title');
+    document.getElementById('modalScore').textContent = t('modal_score', score);
+    document.getElementById('modalLevel').textContent = t('modal_level', level);
+    overlay.classList.add('show');
+  }
+
+  function loop(ts){
+    const dt = Math.min((ts - lastTs)/1000, 0.033);
+    lastTs = ts;
+    update(dt);
+    draw();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  // input: touch — drag freely to aim, release to launch (was firing instantly on first touch)
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    movePaddleTo(e.touches[0].clientX);
+  }, {passive:false});
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    movePaddleTo(e.touches[0].clientX);
+  }, {passive:false});
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    if(state === 'ready') launchBall();
+  }, {passive:false});
+
+  // input: mouse
+  canvas.addEventListener('mousemove', e => movePaddleTo(e.clientX));
+  canvas.addEventListener('mousedown', e => {
+    movePaddleTo(e.clientX);
+    if(state === 'ready') launchBall();
+  });
+
+  // keyboard
+  const keys = {};
+  window.addEventListener('keydown', e => {
+    if(['ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+    keys[e.key] = true;
+    if(e.key === ' ' && state === 'ready') launchBall();
+  });
+  window.addEventListener('keyup', e => { keys[e.key] = false; });
+  setInterval(()=>{
+    if(keys['ArrowLeft']) movePaddleTo((canvas.getBoundingClientRect().left) + paddle.x + paddle.w/2 - 18*scale);
+    if(keys['ArrowRight']) movePaddleTo((canvas.getBoundingClientRect().left) + paddle.x + paddle.w/2 + 18*scale);
+  }, 16);
+
+  document.getElementById('retryBtn').addEventListener('click', newGame);
+  document.getElementById('newGameBtn').addEventListener('click', newGame);
+  window.addEventListener('resize', resize);
+
+  applyLang();
+  newGame();
+})();
+</script>
+</body>
+</html>

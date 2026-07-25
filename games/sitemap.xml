@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://YOUR-DOMAIN/index.html</loc><priority>1.0</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/updown.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/click.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/puzzle.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/memory.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/blocks.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/breakout.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/wordchain.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/proverb.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/crossword.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/archery.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/omok.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/minesweeper.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/armor.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/colorsort.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/blockblast.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/batting.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/basketball.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/worldcup.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/golf.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/games/pingpong.html</loc><priority>0.8</priority></url>
+  <url><loc>https://YOUR-DOMAIN/about.html</loc><priority>0.3</priority></url>
+  <url><loc>https://YOUR-DOMAIN/contact.html</loc><priority>0.3</priority></url>
+  <url><loc>https://YOUR-DOMAIN/privacy.html</loc><priority>0.3</priority></url>
+</urlset>

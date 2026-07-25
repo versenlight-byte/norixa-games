@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>속담 맞추기 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="속담의 뒷부분을 맞추는 사지선다 퀴즈 게임. 10문제 도전.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+  }
+  .wrap{ width:100%; max-width:440px; display:flex; flex-direction:column; gap:14px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:30px; margin:4px 0 0;
+      background: linear-gradient(90deg, var(--amber), var(--coral));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:4px 0 0; color:var(--muted); font-size:12.5px; }
+
+  .ad-slot{
+    width:100%; min-height:50px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:11px; background:rgba(245,240,234,0.03);
+  }
+
+  .statbar{ display:flex; justify-content:space-between; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); }
+  .statbar b{ color:var(--ink); }
+  .timebar-track{ width:100%; height:7px; border-radius:6px; background:rgba(245,240,234,0.08); overflow:hidden; }
+  .timebar-fill{ height:100%; width:100%; background: linear-gradient(90deg, var(--teal), var(--amber), var(--coral)); transform-origin:left; transition: transform 1s linear; }
+
+  .qcard{
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border:1px solid var(--line); border-radius:18px; padding:22px 18px;
+    text-align:center; box-shadow: var(--shadow);
+  }
+  .qcard .q-num{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:12px; margin-bottom:8px; }
+  .qcard .q-text{ font-family:'Do Hyeon', sans-serif; font-size:20px; line-height:1.5; }
+  .qcard .q-text .blank{ color:var(--amber); }
+
+  .choices{ display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    border:1.5px solid var(--line); background: rgba(245,240,234,0.05);
+    color:var(--ink); border-radius:14px; padding:14px; font-size:14.5px;
+    text-align:left; cursor:pointer;
+  }
+  .choice:active{ transform: scale(0.98); }
+  .choice.correct{ border-color: var(--teal); background: rgba(45,212,191,0.16); }
+  .choice.wrong{ border-color: var(--coral); background: rgba(255,107,74,0.16); }
+  .choice.disabled{ pointer-events:none; opacity:0.6; }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:340px; background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line); padding:26px 22px 22px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease; box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:40px; margin-bottom:4px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:24px; margin:4px 0 10px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13px; margin-bottom:4px; }
+  button.btn-retry{ margin-top:18px; width:100%; padding:14px; border:none; cursor:pointer; border-radius:14px;
+    background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030; font-weight:900; font-size:15px; font-family:'Noto Sans KR', sans-serif; }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1>속담 맞추기</h1>
+    <p>속담의 뒷부분을 맞혀보세요 · 10문제</p>
+  </header>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="statbar">
+    <span>문제 <b id="qNum">1</b>/10</span>
+    <span>정답 <b id="correctCount">0</b></span>
+    <span>최고 점수 <b id="best">0</b></span>
+  </div>
+  <div class="timebar-track"><div class="timebar-fill" id="timebar"></div></div>
+
+  <div class="qcard">
+    <div class="q-num">다음 속담을 완성하세요</div>
+    <div class="q-text" id="qText">...</div>
+  </div>
+
+  <div class="choices" id="choices"></div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="crossword.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">📝<br><span style="font-size:11.5px;">십자말풀이</span></a><a href="blockblast.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🟦<br><span style="font-size:11.5px;">블록 퍼즐</span></a><a href="click.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚡<br><span style="font-size:11.5px;">반응속도 테스트</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji">🎓</div>
+    <h2>퀴즈 완료!</h2>
+    <div class="result-line" id="modalScore">10문제 중 0개 정답</div>
+    <button class="btn-retry" id="retryBtn">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const PROVERBS = [
+    ["가는 말이 고와야", "오는 말이 곱다"],
+    ["하늘이 무너져도", "솟아날 구멍이 있다"],
+    ["소 잃고", "외양간 고친다"],
+    ["원숭이도 나무에서", "떨어진다"],
+    ["백지장도 맞들면", "낫다"],
+    ["낮말은 새가 듣고", "밤말은 쥐가 듣는다"],
+    ["등잔 밑이", "어둡다"],
+    ["우물 안", "개구리"],
+    ["티끌 모아", "태산"],
+    ["가재는 게", "편이다"],
+    ["콩 심은 데 콩 나고", "팥 심은 데 팥 난다"],
+    ["열 길 물속은 알아도", "한 길 사람 속은 모른다"],
+    ["서당개 삼 년이면", "풍월을 읊는다"],
+    ["발 없는 말이", "천리 간다"],
+    ["빈 수레가", "요란하다"],
+    ["고생 끝에", "낙이 온다"],
+    ["세 살 버릇", "여든까지 간다"],
+    ["뜻이 있는 곳에", "길이 있다"],
+    ["돌다리도 두들겨 보고", "건너라"],
+    ["호랑이도 제 말 하면", "온다"],
+    ["가랑비에", "옷 젖는 줄 모른다"],
+    ["남의 떡이", "커 보인다"],
+    ["되로 주고", "말로 받는다"],
+    ["미운 아이", "떡 하나 더 준다"],
+    ["벼는 익을수록", "고개를 숙인다"],
+    ["사공이 많으면", "배가 산으로 간다"],
+    ["서투른 목수가", "연장 탓한다"],
+    ["우물을 파도", "한 우물을 파라"],
+    ["작은 고추가", "맵다"],
+    ["종로에서 뺨 맞고", "한강에서 눈 흘긴다"],
+    ["쥐구멍에도", "볕 들 날 있다"],
+    ["천 리 길도", "한 걸음부터"],
+    ["하나를 보면", "열을 안다"],
+    ["호미로 막을 것을", "가래로 막는다"],
+    ["가는 날이", "장날"],
+    ["개구리 올챙이 적", "생각 못 한다"],
+    ["계란으로", "바위 치기"],
+    ["고양이 목에", "방울 달기"],
+    ["급하면 바늘허리에", "실 매어 쓸까"],
+    ["꿩 대신", "닭"],
+    ["낫 놓고", "기역 자도 모른다"],
+    ["누워서", "떡 먹기"],
+    ["다 된 밥에", "재 뿌리기"],
+    ["도토리", "키 재기"],
+    ["될성부른 나무는", "떡잎부터 알아본다"],
+    ["마파람에", "게 눈 감추듯"],
+    ["목마른 사람이", "우물 판다"],
+    ["물에 빠지면", "지푸라기라도 잡는다"],
+    ["미꾸라지 한 마리가", "온 웅덩이를 흐린다"],
+    ["밑 빠진 독에", "물 붓기"],
+    ["배보다", "배꼽이 더 크다"],
+    ["백문이", "불여일견"],
+    ["병 주고", "약 준다"],
+    ["불난 집에", "부채질한다"],
+    ["비 온 뒤에", "땅이 굳는다"],
+    ["세월이", "약이다"],
+    ["소 뒷걸음질 치다", "쥐 잡는다"],
+    ["수박", "겉 핥기"],
+    ["시작이", "반이다"],
+    ["아니 땐 굴뚝에", "연기 날까"],
+    ["어물전 망신은", "꼴뚜기가 시킨다"],
+    ["열 손가락 깨물어", "안 아픈 손가락 없다"],
+    ["옥에도", "티가 있다"],
+    ["원수는", "외나무다리에서 만난다"],
+    ["입에 쓴 약이", "병에는 좋다"],
+    ["자라 보고 놀란 가슴", "솥뚜껑 보고 놀란다"],
+    ["절이 싫으면", "중이 떠나라"],
+    ["짚신도", "짝이 있다"],
+    ["참을 인 자 셋이면", "살인도 면한다"],
+    ["첫술에", "배부르랴"],
+    ["팔이", "안으로 굽는다"],
+    ["핑계 없는", "무덤 없다"],
+    ["하룻강아지", "범 무서운 줄 모른다"],
+    ["호랑이에게 물려가도", "정신만 차리면 산다"],
+    ["구슬이 서 말이라도", "꿰어야 보배"],
+    ["낙숫물이", "댓돌을 뚫는다"],
+    ["내 코가", "석 자"],
+    ["달도 차면", "기운다"],
+    ["물이 깊어야", "고기가 모인다"],
+    ["뿌린 대로", "거둔다"],
+    ["산 넘어", "산"],
+    ["새 발의", "피"],
+    ["서울 가서", "김서방 찾기"],
+    ["손바닥으로", "하늘 가리기"],
+    ["쇠뿔도", "단김에 빼라"],
+    ["십 년이면", "강산도 변한다"],
+    ["아는 길도", "물어 가라"],
+    ["언 발에", "오줌 누기"],
+    ["오르지 못할 나무는", "쳐다보지도 마라"],
+    ["우물에 가", "숭늉 찾는다"],
+    ["입술이 없으면", "이가 시리다"],
+    ["하늘의", "별 따기"]
+  ];
+
+  const qText = document.getElementById('qText');
+  const choicesEl = document.getElementById('choices');
+  const qNumEl = document.getElementById('qNum');
+  const correctCountEl = document.getElementById('correctCount');
+  const bestEl = document.getElementById('best');
+  const timebar = document.getElementById('timebar');
+  const overlay = document.getElementById('overlay');
+
+  const TOTAL_Q = 10;
+  const Q_SECONDS = 10;
+  let order, qIndex, correctCount, timerId, timeLeft, locked, streak;
+
+  function loadBest(){ bestEl.textContent = localStorage.getItem('proverb_best') || '0'; }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+
+  function newGame(){
+    order = shuffle([...Array(PROVERBS.length).keys()]).slice(0, TOTAL_Q);
+    qIndex = 0; correctCount = 0; streak = 0; locked = false;
+    correctCountEl.textContent = '0';
+    overlay.classList.remove('show');
+    loadBest();
+    showQuestion();
+  }
+
+  function showQuestion(){
+    locked = false;
+    qNumEl.textContent = qIndex+1;
+    const idx = order[qIndex];
+    const [front, answer] = PROVERBS[idx];
+    qText.textContent = front + ' ___';
+
+    const distractorPool = PROVERBS.filter((_,i)=> i !== idx).map(p=>p[1]);
+    const distractors = shuffle(distractorPool).slice(0,3);
+    const choices = shuffle([answer, ...distractors]);
+
+    choicesEl.innerHTML = '';
+    choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = choice;
+      btn.addEventListener('click', ()=> selectAnswer(btn, choice, answer));
+      choicesEl.appendChild(btn);
+    });
+
+    startTimer();
+  }
+
+  function startTimer(){
+    clearInterval(timerId);
+    timeLeft = Q_SECONDS;
+    timebar.style.transform = 'scaleX(1)';
+    timerId = setInterval(()=>{
+      timeLeft--;
+      timebar.style.transform = 'scaleX(' + Math.max(timeLeft,0)/Q_SECONDS + ')';
+      if(timeLeft <= 0){
+        clearInterval(timerId);
+        if(!locked) selectAnswer(null, null, PROVERBS[order[qIndex]][1]);
+      }
+    }, 1000);
+  }
+
+  function selectAnswer(btn, choice, answer){
+    if(locked) return;
+    locked = true;
+    clearInterval(timerId);
+    const buttons = [...choicesEl.children];
+    buttons.forEach(b => {
+      b.classList.add('disabled');
+      if(b.textContent === answer) b.classList.add('correct');
+    });
+    if(choice === answer){
+      SFX.correct(); FX.flash('rgba(45,212,191,0.22)'); FX.vibrate(14);
+      correctCount++;
+      streak++;
+      correctCountEl.textContent = correctCount;
+      if(streak >= 3){ FX.popText(streak + '연속 정답! 🔥', null, null, 'var(--amber)'); }
+    } else {
+      SFX.wrong(); FX.shake(); FX.vibrate(30);
+      streak = 0;
+      if(btn) btn.classList.add('wrong');
+    }
+    setTimeout(()=>{
+      qIndex++;
+      if(qIndex >= TOTAL_Q){ finish(); } else { showQuestion(); }
+    }, 900);
+  }
+
+  function finish(){
+    SFX.win(); FX.flash('rgba(255,194,75,0.32)'); FX.vibrate([35,30,70]);
+    const best = parseInt(localStorage.getItem('proverb_best') || '0', 10);
+    if(correctCount > best) localStorage.setItem('proverb_best', correctCount);
+    loadBest();
+    document.getElementById('modalScore').textContent = TOTAL_Q + '문제 중 ' + correctCount + '개 정답';
+    overlay.classList.add('show');
+  }
+
+  document.getElementById('retryBtn').addEventListener('click', newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>

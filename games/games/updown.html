@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>업다운 챌린지 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1B1030;
+    --bg-deep: #120A22;
+    --card: #241640;
+    --card-hi: #2E1B52;
+    --ink: #F5F0EA;
+    --muted: #A79BC4;
+    --coral: #FF6B4A;
+    --teal: #2DD4BF;
+    --amber: #FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    min-height:100dvh;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%),
+      var(--bg-deep);
+    color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+  }
+  .wrap{ width:100%; max-width:440px; display:flex; flex-direction:column; gap:14px; }
+
+  header{ text-align:center; padding-top:6px; }
+  h1{
+    font-family:'Do Hyeon', sans-serif;
+    font-size:34px;
+    letter-spacing:1px;
+    margin:0;
+    background: linear-gradient(90deg, var(--teal), var(--amber) 55%, var(--coral));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:13.5px; }
+
+  .ad-slot{
+    width:100%;
+    min-height:60px;
+    border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    color: rgba(245,240,234,0.35);
+    font-size:12px;
+    letter-spacing:0.5px;
+    background: rgba(245,240,234,0.03);
+  }
+
+  .card{
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px;
+    padding:20px 18px 22px;
+    box-shadow: var(--shadow);
+    border:1px solid var(--line);
+  }
+
+  .lang-row{ display:flex; gap:6px; justify-content:center; margin:-4px 0 4px; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .statbar{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    color:var(--muted);
+    margin-bottom:12px;
+  }
+  .statbar b{ color:var(--ink); }
+
+  .timebar-track{
+    width:100%; height:8px; border-radius:6px;
+    background: rgba(245,240,234,0.08);
+    overflow:hidden;
+    margin-bottom:18px;
+  }
+  .timebar-fill{
+    height:100%; width:100%;
+    background: linear-gradient(90deg, var(--teal), var(--amber), var(--coral));
+    transform-origin:left;
+    transition: transform 1s linear;
+  }
+
+  .gauge-wrap{ display:flex; flex-direction:column; align-items:center; margin-bottom:8px; }
+  .gauge-arc{
+    width:240px; height:120px;
+    border-radius:120px 120px 0 0;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--amber) 50%, var(--coral) 100%);
+    position:relative;
+    overflow:hidden;
+    box-shadow: inset 0 -6px 16px rgba(0,0,0,0.25);
+  }
+  .gauge-arc::after{
+    content:"";
+    position:absolute; left:6px; right:6px; top:6px; bottom:0;
+    border-radius:120px 120px 0 0;
+    background: var(--bg-deep);
+  }
+  .gauge-needle{
+    position:absolute; bottom:0; left:50%;
+    width:4px; height:104px;
+    background: var(--ink);
+    border-radius:4px;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(0deg);
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+    z-index:2;
+  }
+  .gauge-pivot{
+    position:absolute; bottom:-9px; left:50%; transform:translateX(-50%);
+    width:18px; height:18px; border-radius:50%;
+    background: var(--ink);
+    box-shadow: 0 0 0 4px var(--bg-deep);
+    z-index:3;
+  }
+  .gauge-labels{
+    display:flex; justify-content:space-between;
+    width:240px; margin-top:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; color:var(--muted);
+  }
+
+  .hint{
+    text-align:center;
+    font-family:'Do Hyeon', sans-serif;
+    font-size:24px;
+    min-height:34px;
+    margin: 10px 0 16px;
+    transition: transform .15s ease;
+  }
+  .hint.shake{ animation: shake .35s; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-6px); }
+    75%{ transform:translateX(6px); }
+  }
+  .hint.up{ color: var(--teal); }
+  .hint.down{ color: var(--coral); }
+  .hint.hot{ color: var(--amber); }
+
+  .chips{
+    display:flex; gap:6px; overflow-x:auto;
+    padding-bottom:4px; margin-bottom:16px;
+    scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex:0 0 auto;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px; font-weight:700;
+    padding:6px 10px; border-radius:999px;
+    background: rgba(245,240,234,0.06);
+    border:1px solid var(--line);
+    white-space:nowrap;
+  }
+  .chip.up{ color: var(--teal); border-color: rgba(45,212,191,0.4); }
+  .chip.down{ color: var(--coral); border-color: rgba(255,107,74,0.4); }
+
+  .input-row{ display:flex; gap:8px; }
+  input[type=number]{
+    flex:1;
+    min-width:0;
+    background: rgba(245,240,234,0.06);
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    color:var(--ink);
+    font-family:'JetBrains Mono', monospace;
+    font-size:22px;
+    font-weight:700;
+    text-align:center;
+    padding:14px 10px;
+    outline:none;
+  }
+  input[type=number]:focus{ border-color: var(--amber); }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+
+  button{ font-family:'Noto Sans KR', sans-serif; border:none; cursor:pointer; }
+  .btn-main{
+    flex: 0 0 96px;
+    background: linear-gradient(135deg, var(--coral), var(--amber));
+    color:#1B1030;
+    font-weight:900;
+    font-size:16px;
+    border-radius:14px;
+    padding:14px 6px;
+    transition: transform .12s ease;
+  }
+  .btn-main:active{ transform: scale(0.94); }
+
+  .footer-stats{
+    display:flex; justify-content:center; gap:14px;
+    color:var(--muted); font-size:12px;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(10,6,20,0.72);
+    backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    opacity:0; pointer-events:none;
+    transition: opacity .25s ease;
+    z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:360px;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px;
+    border:1px solid var(--line);
+    padding:28px 24px 24px;
+    text-align:center;
+    transform: translateY(14px) scale(0.96);
+    transition: transform .25s ease;
+    box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:44px; margin-bottom:6px; }
+  .modal h2{
+    font-family:'Do Hyeon', sans-serif;
+    font-size:26px; margin: 4px 0 12px;
+  }
+  .modal .result-line{
+    font-family:'JetBrains Mono', monospace;
+    color: var(--muted);
+    font-size:13.5px;
+    margin-bottom:4px;
+  }
+  .modal .streak{
+    margin-top:10px;
+    font-size:13px;
+    color: var(--amber);
+    font-weight:700;
+  }
+  .btn-retry{
+    margin-top:20px;
+    width:100%;
+    padding:15px;
+    border-radius:14px;
+    background: linear-gradient(135deg, var(--teal), var(--amber));
+    color:#1B1030;
+    font-weight:900;
+    font-size:16px;
+  }
+  .btn-retry:active{ transform: scale(0.97); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <a href="../index.html" style="color:var(--muted); text-decoration:none; font-size:13px;">← 게임 목록으로</a>
+  <header>
+    <h1 data-i18n="title">업다운 챌린지</h1>
+    <p data-i18n="subtitle">1~100 사이, 내가 정한 숫자를 90초 안에 맞혀보세요</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <!-- 광고 영역 1: 상단 배너 (예: 320x50 또는 반응형) -->
+  <ins class="adsbygoogle ad-slot" id="ad-top"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="card">
+    <div class="statbar">
+      <span><span data-i18n="stat_tries">시도</span> <b id="stat-tries">0</b><span data-i18n="stat_tries_unit">회</span></span>
+      <span><span data-i18n="stat_best">최고 기록</span> <b id="stat-best">-</b></span>
+      <span><span data-i18n="stat_streak">연승</span> <b id="stat-streak">0</b></span>
+    </div>
+
+    <div class="timebar-track"><div class="timebar-fill" id="timebar"></div></div>
+
+    <div class="gauge-wrap">
+      <div class="gauge-arc">
+        <div class="gauge-needle" id="needle"></div>
+        <div class="gauge-pivot"></div>
+      </div>
+      <div class="gauge-labels"><span>⬆ UP</span><span>HOT</span><span>DOWN ⬇</span></div>
+    </div>
+
+    <div class="hint" id="hint">몇으로 시작해볼까요?</div>
+
+    <div class="chips" id="chips"></div>
+
+    <div class="input-row">
+      <input type="number" id="guessInput" inputmode="numeric" placeholder="1~100" min="1" max="100">
+      <button class="btn-main" id="submitBtn" data-i18n="btn_confirm">확인</button>
+    </div>
+  </div>
+
+  <!-- 광고 영역 2: 하단 배너 -->
+  <ins class="adsbygoogle ad-slot" id="ad-bottom"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="footer-stats">
+    <span data-i18n="footer_stats">⏱ 라운드 최적: 5~7회면 클리어</span>
+  </div>
+
+  
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="click.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚡<br><span style="font-size:11.5px;">반응속도 테스트</span></a><a href="proverb.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">📜<br><span style="font-size:11.5px;">속담 맞추기</span></a><a href="blockblast.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🟦<br><span style="font-size:11.5px;">블록 퍼즐</span></a></div></div>
+
+  <footer style="display:flex; justify-content:center; gap:14px; margin-top:6px;">
+    <a href="../about.html" style="color:var(--muted); font-size:12px; text-decoration:none;" data-i18n="footer_about">소개</a>
+    <a href="../privacy.html" style="color:var(--muted); font-size:12px; text-decoration:none;" data-i18n="footer_privacy">개인정보처리방침</a>
+    <a href="../contact.html" style="color:var(--muted); font-size:12px; text-decoration:none;" data-i18n="footer_contact">문의</a>
+  </footer>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="modalEmoji">🎉</div>
+    <h2 id="modalTitle">정답입니다!</h2>
+    <div class="result-line" id="modalLine1">시도 0회 · 0초</div>
+    <div class="result-line" id="modalLine2"></div>
+    <div class="streak" id="modalStreak"></div>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const $ = id => document.getElementById(id);
+  const hintEl = $('hint'), needle = $('needle'), chipsEl = $('chips');
+  const input = $('guessInput'), submitBtn = $('submitBtn');
+  const timebar = $('timebar');
+  const overlay = $('overlay'), retryBtn = $('retryBtn');
+  const statTries = $('stat-tries'), statBest = $('stat-best'), statStreak = $('stat-streak');
+
+  const ROUND_SECONDS = 90;
+  let target, tries, startTime, timerId, timeLeft, ended;
+  let hintState = 'start', lastModal = null;
+
+  const LANG = {
+    ko: {
+      title:'업다운 챌린지', subtitle:'1~100 사이, 내가 정한 숫자를 90초 안에 맞혀보세요',
+      stat_tries:'시도', stat_tries_unit:'회', stat_best:'최고 기록', stat_streak:'연승',
+      btn_confirm:'확인', btn_retry:'다시 하기',
+      footer_stats:'⏱ 라운드 최적: 5~7회면 클리어',
+      footer_about:'소개', footer_privacy:'개인정보처리방침', footer_contact:'문의',
+      hint_start:'몇으로 시작해볼까요?', hint_invalid:'1~100 사이 숫자를 입력해주세요',
+      hint_hot:'거의 다 왔어요! 🔥', hint_down:'더 낮아요! ⬇️', hint_up:'더 높아요! ⬆️',
+      modal_win_title:'정답입니다!', modal_lose_title:'시간 종료!',
+      modal_win_line1:(t,e)=>`시도 ${t}회 · ${e}초`, modal_lose_line1:(t)=>`시도 ${t}회`,
+      modal_line2:(v)=>`정답은 ${v}였어요`, modal_streak:(s)=>`🔥 ${s}연승 중!`,
+    },
+    en: {
+      title:'Up & Down Challenge', subtitle:'Guess the number between 1-100 within 90 seconds',
+      stat_tries:'Tries', stat_tries_unit:'', stat_best:'Best', stat_streak:'Streak',
+      btn_confirm:'Confirm', btn_retry:'Try Again',
+      footer_stats:'⏱ Best cleared in 5-7 tries',
+      footer_about:'About', footer_privacy:'Privacy Policy', footer_contact:'Contact',
+      hint_start:'Pick a number to start!', hint_invalid:'Enter a number between 1 and 100',
+      hint_hot:'So close! 🔥', hint_down:'Go lower! ⬇️', hint_up:'Go higher! ⬆️',
+      modal_win_title:'Correct!', modal_lose_title:"Time's up!",
+      modal_win_line1:(t,e)=>`${t} tries · ${e}s`, modal_lose_line1:(t)=>`${t} tries`,
+      modal_line2:(v)=>`The answer was ${v}`, modal_streak:(s)=>`🔥 ${s} win streak!`,
+    },
+    es: {
+      title:'Desafío Arriba y Abajo', subtitle:'Adivina el número entre 1 y 100 en 90 segundos',
+      stat_tries:'Intentos', stat_tries_unit:'', stat_best:'Mejor', stat_streak:'Racha',
+      btn_confirm:'Confirmar', btn_retry:'Reintentar',
+      footer_stats:'⏱ Lo ideal es lograrlo en 5-7 intentos',
+      footer_about:'Acerca de', footer_privacy:'Privacidad', footer_contact:'Contacto',
+      hint_start:'¡Elige un número para empezar!', hint_invalid:'Ingresa un número entre 1 y 100',
+      hint_hot:'¡Muy cerca! 🔥', hint_down:'¡Más bajo! ⬇️', hint_up:'¡Más alto! ⬆️',
+      modal_win_title:'¡Correcto!', modal_lose_title:'¡Se acabó el tiempo!',
+      modal_win_line1:(t,e)=>`${t} intentos · ${e}s`, modal_lose_line1:(t)=>`${t} intentos`,
+      modal_line2:(v)=>`La respuesta era ${v}`, modal_streak:(s)=>`🔥 ¡Racha de ${s}!`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function renderHint(){
+    const map = { start:'hint_start', invalid:'hint_invalid', hot:'hint_hot', down:'hint_down', up:'hint_up' };
+    hintEl.textContent = t(map[hintState] || 'hint_start');
+  }
+  function renderModal(){
+    if(!lastModal) return;
+    const { won, tries:mt, elapsed, target:mv, streak } = lastModal;
+    $('modalTitle').textContent = won ? t('modal_win_title') : t('modal_lose_title');
+    $('modalLine1').textContent = won ? t('modal_win_line1', mt, elapsed) : t('modal_lose_line1', mt);
+    $('modalLine2').textContent = t('modal_line2', mv);
+    $('modalStreak').textContent = won ? t('modal_streak', streak) : '';
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    renderHint();
+    renderModal();
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+
+  function loadStats(){
+    const best = localStorage.getItem('updown_best_tries');
+    statBest.textContent = best ? best + '회' : '-';
+    statStreak.textContent = localStorage.getItem('updown_streak') || '0';
+  }
+
+  function newRound(){
+    target = Math.floor(Math.random()*100) + 1;
+    tries = 0;
+    timeLeft = ROUND_SECONDS;
+    ended = false;
+    statTries.textContent = '0';
+    hintEl.className = 'hint';
+    hintState = 'start';
+    hintEl.textContent = t('hint_start');
+    chipsEl.innerHTML = '';
+    needle.style.transform = 'translateX(-50%) rotate(0deg)';
+    timebar.style.transform = 'scaleX(1)';
+    input.value = '';
+    overlay.classList.remove('show');
+    clearInterval(timerId);
+    startTime = Date.now();
+    timerId = setInterval(tick, 1000);
+    setTimeout(()=> input.focus(), 200);
+  }
+
+  function tick(){
+    timeLeft--;
+    timebar.style.transform = 'scaleX(' + Math.max(timeLeft,0)/ROUND_SECONDS + ')';
+    if(timeLeft <= 0){
+      clearInterval(timerId);
+      endRound(false);
+    }
+  }
+
+  function addChip(guess, diff){
+    const chip = document.createElement('div');
+    chip.className = 'chip ' + (diff>0 ? 'up' : 'down');
+    chip.textContent = guess + (diff>0 ? ' ⬆' : ' ⬇');
+    chipsEl.appendChild(chip);
+    chipsEl.scrollLeft = chipsEl.scrollWidth;
+  }
+
+  function submitGuess(){
+    if(ended) return;
+    const val = parseInt(input.value, 10);
+    if(!val || val < 1 || val > 100){
+      hintState = 'invalid';
+      hintEl.textContent = t('hint_invalid');
+      hintEl.className = 'hint shake';
+      setTimeout(()=> hintEl.classList.remove('shake'), 350);
+      return;
+    }
+    tries++;
+    statTries.textContent = tries;
+    const diff = val - target;
+
+    const clamped = Math.max(-50, Math.min(50, diff));
+    const angle = (clamped/50) * 80;
+    needle.style.transform = 'translateX(-50%) rotate(' + angle + 'deg)';
+
+    if(diff === 0){
+      SFX.win(); FX.flash('rgba(255,194,75,0.32)'); FX.vibrate([35,30,70]);
+      endRound(true);
+      return;
+    }
+    addChip(val, diff);
+    SFX.pop();
+    hintEl.classList.add('shake');
+    setTimeout(()=> hintEl.classList.remove('shake'), 350);
+
+    if(Math.abs(diff) <= 3){
+      hintEl.className = 'hint hot shake';
+      hintState = 'hot';
+      hintEl.textContent = t('hint_hot');
+    } else if(diff > 0){
+      hintEl.className = 'hint down shake';
+      hintState = 'down';
+      hintEl.textContent = t('hint_down');
+    } else {
+      hintEl.className = 'hint up shake';
+      hintState = 'up';
+      hintEl.textContent = t('hint_up');
+    }
+    input.value = '';
+    input.focus();
+  }
+
+  function endRound(won){
+    ended = true;
+    clearInterval(timerId);
+    const elapsed = Math.round((Date.now()-startTime)/1000);
+
+    if(won){
+      const prevBest = parseInt(localStorage.getItem('updown_best_tries') || '999', 10);
+      if(tries < prevBest) localStorage.setItem('updown_best_tries', tries);
+      const streak = parseInt(localStorage.getItem('updown_streak') || '0', 10) + 1;
+      localStorage.setItem('updown_streak', streak);
+
+      lastModal = { won:true, tries, elapsed, target, streak };
+      $('modalEmoji').textContent = '🎉';
+      $('modalTitle').textContent = t('modal_win_title');
+      $('modalLine1').textContent = t('modal_win_line1', tries, elapsed);
+      $('modalLine2').textContent = t('modal_line2', target);
+      $('modalStreak').textContent = t('modal_streak', streak);
+    } else {
+      SFX.lose(); FX.shake(); FX.vibrate([70,40,70]);
+      localStorage.setItem('updown_streak', '0');
+      lastModal = { won:false, tries, elapsed, target, streak:0 };
+      $('modalEmoji').textContent = '⏰';
+      $('modalTitle').textContent = t('modal_lose_title');
+      $('modalLine1').textContent = t('modal_lose_line1', tries);
+      $('modalLine2').textContent = t('modal_line2', target);
+      $('modalStreak').textContent = '';
+    }
+    loadStats();
+    overlay.classList.add('show');
+  }
+
+  submitBtn.addEventListener('click', () => { SFX.click(); submitGuess(); });
+  input.addEventListener('keydown', e => { if(e.key === 'Enter') submitGuess(); });
+  retryBtn.addEventListener('click', newRound);
+
+  loadStats();
+  applyLang();
+  newRound();
+})();
+</script>
+</body>
+</html>

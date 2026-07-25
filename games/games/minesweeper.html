@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>지뢰찾기 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="8x8 미니 보드에서 지뢰 10개를 피해 모든 칸을 여는 지뢰찾기 게임. 모바일 탭으로 플레이.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+    touch-action: manipulation;
+  }
+  .wrap{ width:100%; max-width:420px; display:flex; flex-direction:column; gap:14px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:32px; margin:6px 0 0;
+      background: linear-gradient(90deg, var(--coral), var(--amber));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:13.5px; }
+
+  .ad-slot{
+    width:100%; min-height:60px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:12px; background:rgba(245,240,234,0.03);
+  }
+
+  .statbar{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .stat-box{
+    flex:1; text-align:center; padding:8px 6px; border-radius:12px;
+    background: rgba(245,240,234,0.06); border:1px solid var(--line);
+  }
+  .stat-box .lbl{ font-size:10.5px; color:var(--muted); }
+  .stat-box .val{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:17px; }
+  .newgame-btn{
+    border:none; cursor:pointer; border-radius:12px; padding:0 16px; height:100%; min-height:44px;
+    background: linear-gradient(135deg, var(--coral), var(--amber)); color:#1B1030;
+    font-weight:900; font-size:13px; font-family:'Noto Sans KR', sans-serif;
+  }
+  .flag-toggle{
+    width:100%; padding:11px; border-radius:12px; border:1px solid var(--line); cursor:pointer;
+    background: rgba(245,240,234,0.06); color:var(--ink); font-size:13.5px; font-weight:700;
+    font-family:'Noto Sans KR', sans-serif; display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .flag-toggle.active{ background: linear-gradient(135deg, var(--coral), var(--amber)); color:#1B1030; border-color:transparent; }
+
+  .board{
+    width:100%; aspect-ratio:1/1;
+    background: var(--card); border-radius:16px; padding:6px;
+    display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr);
+    gap:3px; box-shadow: var(--shadow); border:1px solid var(--line);
+  }
+  .cell{
+    background: rgba(245,240,234,0.10); border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:14px;
+    cursor:pointer; user-select:none;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.18);
+    transition: transform .06s ease;
+  }
+  .cell.tile-b{ background: rgba(245,240,234,0.055); }
+  .cell:active{ transform: scale(0.9); }
+  .cell.revealed{
+    background: rgba(245,240,234,0.03); box-shadow:none;
+    animation: cellPop .16s ease;
+  }
+  @keyframes cellPop{ 0%{ transform:scale(0.7); opacity:0.4; } 100%{ transform:scale(1); opacity:1; } }
+  .cell.mine{ background: var(--coral); box-shadow:none; }
+  .cell.flag{ background: rgba(255,194,75,0.18); }
+  .c1{ color:#5B9BFF; } .c2{ color:#2DD4BF; } .c3{ color:#FF6B4A; } .c4{ color:#8B7CF6; }
+  .c5{ color:#FFC24B; } .c6{ color:#22C55E; } .c7{ color:#F5F0EA; } .c8{ color:#A79BC4; }
+
+  .hint{ text-align:center; color:var(--muted); font-size:12.5px; }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:360px;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line);
+    padding:28px 24px 24px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease;
+    box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:44px; margin-bottom:6px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:26px; margin:4px 0 12px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13.5px; margin-bottom:4px; }
+  .btn-retry{
+    margin-top:20px; width:100%; padding:15px; border:none; cursor:pointer;
+    border-radius:14px; background: linear-gradient(135deg, var(--teal), var(--amber));
+    color:#1B1030; font-weight:900; font-size:16px; font-family:'Noto Sans KR', sans-serif;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1 data-i18n="title">지뢰찾기</h1>
+    <p data-i18n="subtitle">지뢰 10개를 피해서 모든 칸을 열어보세요</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div class="statbar">
+    <div class="stat-box"><div class="lbl" data-i18n="stat_mines">남은 지뢰</div><div class="val" id="mineCount">10</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_time">시간</div><div class="val" id="timer">0</div></div>
+    <div class="stat-box"><div class="lbl" data-i18n="stat_best">최고 기록</div><div class="val" id="best">-</div></div>
+    <button class="newgame-btn" id="newGameBtn" data-i18n="btn_newgame">새 게임</button>
+  </div>
+  <button class="flag-toggle" id="flagToggle">🚩 깃발 모드 (끄기)</button>
+
+  <div class="board" id="board"></div>
+  <div class="hint" data-i18n="hint_controls">👆 탭해서 열기 · 깃발 모드를 켜고 탭하면 지뢰 표시</div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="armor.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⚔️<br><span style="font-size:11.5px;">전신갑주</span></a><a href="golf.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⛳<br><span style="font-size:11.5px;">골프왕 챌린지</span></a><a href="breakout.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">💥<br><span style="font-size:11.5px;">벽돌 깨기</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="modalEmoji">🎉</div>
+    <h2 id="modalTitle">클리어!</h2>
+    <div class="result-line" id="modalLine">기록 0초</div>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  const SIZE = 8, MINES = 10;
+  const boardEl = document.getElementById('board');
+  const overlay = document.getElementById('overlay');
+  const retryBtn = document.getElementById('retryBtn');
+  const newGameBtn = document.getElementById('newGameBtn');
+  const flagToggle = document.getElementById('flagToggle');
+  const mineCountEl = document.getElementById('mineCount');
+  const timerEl = document.getElementById('timer');
+  const bestEl = document.getElementById('best');
+
+  let mines, revealed, flagged, over, started, firstClickDone, flagMode, timerInterval, seconds, cells;
+  let lastModal = null;
+
+  const LANG = {
+    ko: {
+      title:'지뢰찾기', subtitle:'지뢰 10개를 피해서 모든 칸을 열어보세요',
+      stat_mines:'남은 지뢰', stat_time:'시간', stat_best:'최고 기록', btn_newgame:'새 게임', btn_retry:'다시 하기',
+      hint_controls:'👆 탭해서 열기 · 깃발 모드를 켜고 탭하면 지뢰 표시',
+      flag_on:'🚩 깃발 모드 (켜짐)', flag_off:'🚩 깃발 모드 (끄기)',
+      seconds_suffix:(s)=>`${s}초`,
+      modal_lose_title:'펑! 지뢰를 밟았어요', modal_lose_line:(s)=>`${s}초 만에 게임 종료`,
+      modal_win_title:'클리어!', modal_win_line:(s)=>`기록 ${s}초`,
+    },
+    en: {
+      title:'Minesweeper', subtitle:'Clear the board while avoiding 10 mines',
+      stat_mines:'Mines Left', stat_time:'Time', stat_best:'Best', btn_newgame:'New Game', btn_retry:'Try Again',
+      hint_controls:'👆 Tap to reveal · Turn on flag mode and tap to mark mines',
+      flag_on:'🚩 Flag Mode (On)', flag_off:'🚩 Flag Mode (Off)',
+      seconds_suffix:(s)=>`${s}s`,
+      modal_lose_title:'Boom! You hit a mine', modal_lose_line:(s)=>`Game over in ${s}s`,
+      modal_win_title:'Cleared!', modal_win_line:(s)=>`Time ${s}s`,
+    },
+    es: {
+      title:'Buscaminas', subtitle:'Despeja el tablero evitando 10 minas',
+      stat_mines:'Minas restantes', stat_time:'Tiempo', stat_best:'Mejor', btn_newgame:'Nueva partida', btn_retry:'Reintentar',
+      hint_controls:'👆 Toca para revelar · Activa el modo bandera y toca para marcar minas',
+      flag_on:'🚩 Modo bandera (Activado)', flag_off:'🚩 Modo bandera (Desactivado)',
+      seconds_suffix:(s)=>`${s}s`,
+      modal_lose_title:'¡Boom! Pisaste una mina', modal_lose_line:(s)=>`Fin del juego en ${s}s`,
+      modal_win_title:'¡Completado!', modal_win_line:(s)=>`Tiempo ${s}s`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    flagToggle.textContent = flagMode ? t('flag_on') : t('flag_off');
+    loadBest();
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = t('modal_' + lastModal.outcome + '_title');
+      document.getElementById('modalLine').textContent = t('modal_' + lastModal.outcome + '_line', lastModal.seconds);
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+
+  function loadBest(){
+    const b = localStorage.getItem('mine_best');
+    bestEl.textContent = b ? t('seconds_suffix', b) : '-';
+  }
+
+  function newGame(){
+    mines = Array.from({length:SIZE}, ()=>Array(SIZE).fill(false));
+    revealed = Array.from({length:SIZE}, ()=>Array(SIZE).fill(false));
+    flagged = Array.from({length:SIZE}, ()=>Array(SIZE).fill(false));
+    over = false; started = false; firstClickDone = false; flagMode = false;
+    seconds = 0;
+    timerEl.textContent = '0';
+    mineCountEl.textContent = MINES;
+    flagToggle.classList.remove('active');
+    flagToggle.textContent = t('flag_off');
+    clearInterval(timerInterval);
+    overlay.classList.remove('show');
+    render();
+  }
+
+  function placeMinesOnce(excludeR, excludeC){
+    for(let r=0;r<SIZE;r++) mines[r].fill(false);
+    const forbidden = new Set();
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      const r=excludeR+dr, c=excludeC+dc;
+      if(r>=0&&r<SIZE&&c>=0&&c<SIZE) forbidden.add(r+'_'+c);
+    }
+    let placed = 0;
+    while(placed < MINES){
+      const r = Math.floor(Math.random()*SIZE);
+      const c = Math.floor(Math.random()*SIZE);
+      if(mines[r][c] || forbidden.has(r+'_'+c)) continue;
+      mines[r][c] = true; placed++;
+    }
+  }
+
+  function countCascadeSize(excludeR, excludeC){
+    // 실제 상태를 건드리지 않고, 첫 클릭 시 몇 칸이 한 번에 열릴지 미리 계산해요.
+    const seen = new Set();
+    const stack = [[excludeR, excludeC]];
+    while(stack.length){
+      const [cr,cc] = stack.pop();
+      const key = cr+'_'+cc;
+      if(seen.has(key)) continue;
+      seen.add(key);
+      if(countAdjacent(cr,cc) === 0){
+        for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+          if(dr===0&&dc===0) continue;
+          const rr=cr+dr, ccx=cc+dc;
+          if(rr>=0&&rr<SIZE&&ccx>=0&&ccx<SIZE&&!mines[rr][ccx]) stack.push([rr,ccx]);
+        }
+      }
+    }
+    return seen.size;
+  }
+
+  function placeMines(excludeR, excludeC){
+    // 첫 클릭이 심심하게 칸 하나만 여는 걸 방지하려고, 만족스러운 크기로 열릴 때까지 배치를 다시 시도해요.
+    let best = null, bestSize = -1;
+    for(let attempt=0; attempt<25; attempt++){
+      placeMinesOnce(excludeR, excludeC);
+      const size = countCascadeSize(excludeR, excludeC);
+      if(size >= 10) return; // 충분히 만족스러운 오프닝
+      if(size > bestSize){ bestSize = size; best = mines.map(row => row.slice()); }
+    }
+    // 25번 안에 못 찾으면 그중 제일 컸던 배치를 사용
+    for(let r=0;r<SIZE;r++) mines[r] = best[r];
+  }
+
+  function countAdjacent(r,c){
+    let n = 0;
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      if(dr===0 && dc===0) continue;
+      const rr=r+dr, cc=c+dc;
+      if(rr>=0&&rr<SIZE&&cc>=0&&cc<SIZE&&mines[rr][cc]) n++;
+    }
+    return n;
+  }
+
+  function floodReveal(r,c){
+    const stack = [[r,c]];
+    while(stack.length){
+      const [cr,cc] = stack.pop();
+      if(revealed[cr][cc] || flagged[cr][cc]) continue;
+      revealed[cr][cc] = true;
+      if(countAdjacent(cr,cc) === 0){
+        for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+          if(dr===0&&dc===0) continue;
+          const rr=cr+dr, ccx=cc+dc;
+          if(rr>=0&&rr<SIZE&&ccx>=0&&ccx<SIZE&&!revealed[rr][ccx]&&!mines[rr][ccx]) stack.push([rr,ccx]);
+        }
+      }
+    }
+  }
+
+  function checkWin(){
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+      if(!mines[r][c] && !revealed[r][c]) return false;
+    }
+    return true;
+  }
+
+  function onCellClick(r,c){
+    if(over) return;
+    if(flagMode){
+      if(revealed[r][c]) return;
+      flagged[r][c] = !flagged[r][c];
+      const flagCount = flagged.flat().filter(Boolean).length;
+      mineCountEl.textContent = Math.max(0, MINES - flagCount);
+      render();
+      return;
+    }
+    if(flagged[r][c] || revealed[r][c]) return;
+
+    if(!firstClickDone){
+      placeMines(r,c);
+      firstClickDone = true;
+      started = true;
+      seconds = 0;
+      timerInterval = setInterval(() => { seconds++; timerEl.textContent = seconds; }, 1000);
+    }
+
+    if(mines[r][c]){
+      SFX.lose(); FX.shake(); FX.vibrate([70,40,70]);
+      revealed[r][c] = true;
+      over = true;
+      clearInterval(timerInterval);
+      for(let rr=0;rr<SIZE;rr++) for(let cc=0;cc<SIZE;cc++) if(mines[rr][cc]) revealed[rr][cc] = true;
+      render();
+      lastModal = { outcome:'lose', seconds };
+      document.getElementById('modalEmoji').textContent = '💥';
+      document.getElementById('modalTitle').textContent = t('modal_lose_title');
+      document.getElementById('modalLine').textContent = t('modal_lose_line', seconds);
+      overlay.classList.add('show');
+      return;
+    }
+
+    floodReveal(r,c);
+    SFX.click();
+    render();
+
+    if(checkWin()){
+      SFX.win(); FX.flash('rgba(255,194,75,0.32)'); FX.vibrate([35,30,70]);
+      over = true;
+      clearInterval(timerInterval);
+      const best = parseInt(localStorage.getItem('mine_best') || '999999', 10);
+      if(seconds < best) localStorage.setItem('mine_best', seconds);
+      loadBest();
+      lastModal = { outcome:'win', seconds };
+      document.getElementById('modalEmoji').textContent = '🎉';
+      document.getElementById('modalTitle').textContent = t('modal_win_title');
+      document.getElementById('modalLine').textContent = t('modal_win_line', seconds);
+      overlay.classList.add('show');
+    }
+  }
+
+  function render(){
+    boardEl.innerHTML = '';
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        const cell = document.createElement('div');
+        let cls = 'cell' + (((r+c)%2===0) ? ' tile-b' : '');
+        let content = '';
+        if(revealed[r][c]){
+          cls += ' revealed';
+          if(mines[r][c]){ cls += ' mine'; content = '💣'; }
+          else{
+            const n = countAdjacent(r,c);
+            if(n > 0){ cls += ' c'+n; content = n; }
+          }
+        } else if(flagged[r][c]){
+          cls += ' flag'; content = '🚩';
+        }
+        cell.className = cls;
+        cell.textContent = content;
+        cell.addEventListener('click', () => onCellClick(r,c));
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  flagToggle.addEventListener('click', () => {
+    flagMode = !flagMode;
+    flagToggle.classList.toggle('active', flagMode);
+    flagToggle.textContent = flagMode ? t('flag_on') : t('flag_off');
+  });
+
+  retryBtn.addEventListener('click', newGame);
+  newGameBtn.addEventListener('click', newGame);
+
+  loadBest();
+  newGame();
+  applyLang();
+  function applyBoardHeightFallback(){
+    if(boardEl.offsetWidth > 0) boardEl.style.height = boardEl.offsetWidth + 'px';
+  }
+  applyBoardHeightFallback();
+  window.addEventListener('resize', applyBoardHeightFallback);
+})();
+</script>
+</body>
+</html>

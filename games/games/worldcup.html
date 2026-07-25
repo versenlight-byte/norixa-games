@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>2026북중미월드컵 - Norixa</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="내 나라를 골라 세계랭킹 1~5위 국가와 2026북중미월드컵 결승전을 겨루는 게임. 슛과 선방을 번갈아가며 승리를 노려보세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink); font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+    touch-action: manipulation;
+  }
+  .wrap{ width:100%; max-width:420px; display:flex; flex-direction:column; gap:14px; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header{ text-align:center; }
+  h1{ font-family:'Do Hyeon', sans-serif; font-size:26px; margin:6px 0 0;
+      background: linear-gradient(90deg, var(--teal), var(--amber));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:12.5px; }
+
+  .ad-slot{
+    width:100%; min-height:60px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:12px; background:rgba(245,240,234,0.03);
+  }
+
+  /* ---- flag select ---- */
+  #flagPhase{ display:flex; flex-direction:column; gap:12px; }
+  .lang-row{ display:flex; gap:6px; justify-content:center; }
+  .lang-btn{
+    padding:6px 12px; border-radius:10px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); font-size:15px; cursor:pointer; opacity:0.5;
+  }
+  .lang-btn.active{ opacity:1; background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.4); }
+
+  .flag-hint{ text-align:center; color:var(--muted); font-size:13px; }
+  .flag-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .flag-btn{
+    background: rgba(245,240,234,0.06); border:1px solid var(--line); border-radius:14px;
+    padding:12px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
+  }
+  .flag-btn .fl{ font-size:26px; }
+  .flag-btn .nm{ font-size:10.5px; color:var(--muted); text-align:center; }
+
+  /* ---- match intro ---- */
+  #introPhase{ display:none; flex-direction:column; gap:16px; align-items:center; text-align:center; }
+  .vs-card{
+    width:100%; background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:20px; border:1px solid var(--line); padding:26px 20px; box-shadow: var(--shadow);
+  }
+  .vs-row{ display:flex; align-items:center; justify-content:center; gap:16px; }
+  .vs-team{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
+  .vs-team .fl{ font-size:52px; }
+  .vs-team .nm{ font-family:'Do Hyeon', sans-serif; font-size:16px; }
+  .vs-mid{ font-family:'Do Hyeon', sans-serif; font-size:22px; color:var(--amber); }
+
+  /* ---- match phase ---- */
+  #matchPhase{ display:none; flex-direction:column; gap:12px; }
+  .score-row{ display:flex; align-items:center; justify-content:center; gap:14px; }
+  .score-team{ display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; }
+  .score-team .fl{ font-size:30px; }
+  .score-team .sc{ font-family:'JetBrains Mono', monospace; font-weight:900; font-size:26px; }
+  .score-mid{ color:var(--muted); font-size:12px; text-align:center; }
+  .kick-dots{ display:flex; gap:4px; justify-content:center; font-size:15px; }
+
+  .phase-badge{ text-align:center; font-family:'Do Hyeon', sans-serif; font-size:18px; color:var(--amber); }
+
+  .goal-wrap{
+    background: var(--card); border-radius:16px; border:1px solid var(--line); box-shadow: var(--shadow);
+    padding:14px; position:relative; min-height:180px;
+  }
+  .goal-net{
+    width:100%; aspect-ratio:16/9; border:6px solid #F5F0EA; border-bottom:none; border-radius:6px 6px 0 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(245,240,234,0.15) 0 2px, transparent 2px 22px),
+      repeating-linear-gradient(0deg, rgba(245,240,234,0.15) 0 2px, transparent 2px 22px),
+      #1B1030;
+    display:grid; grid-template-columns:1fr 1fr 1fr; position:relative; overflow:hidden;
+  }
+  .zone{ display:flex; align-items:center; justify-content:center; cursor:pointer; transition: background .1s ease; }
+  .zone:active{ background: rgba(45,212,191,0.25); }
+  .zone .ball{ font-size:26px; opacity:0; transition: opacity .15s ease; }
+  .keeper{ position:absolute; bottom:0; left:33.33%; width:33.33%; text-align:center; font-size:34px; transition: left .25s ease; pointer-events:none; }
+
+  .result-banner{ text-align:center; font-family:'Do Hyeon', sans-serif; font-size:20px; padding:6px; min-height:30px; }
+
+  .hint{ text-align:center; color:var(--muted); font-size:12.5px; }
+
+  .overlay{
+    position:fixed; inset:0; background: rgba(10,6,20,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:360px;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border-radius:22px; border:1px solid var(--line);
+    padding:28px 24px 24px; text-align:center;
+    transform: translateY(14px) scale(0.96); transition: transform .25s ease;
+    box-shadow: var(--shadow);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .modal .emoji{ font-size:44px; margin-bottom:6px; }
+  .modal h2{ font-family:'Do Hyeon', sans-serif; font-size:26px; margin:4px 0 12px; }
+  .modal .result-line{ font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13.5px; margin-bottom:4px; }
+  .btn-retry{
+    margin-top:20px; width:100%; padding:15px; border:none; cursor:pointer;
+    border-radius:14px; background: linear-gradient(135deg, var(--teal), var(--amber));
+    color:#1B1030; font-weight:900; font-size:16px; font-family:'Noto Sans KR', sans-serif;
+  }
+  .equip-btn{
+    width:100%; padding:16px; border:none; cursor:pointer; border-radius:14px;
+    background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030;
+    font-weight:900; font-size:16px; font-family:'Noto Sans KR', sans-serif;
+  }
+
+  /* ---- shared juice layer (screen fx) ---- */
+  @keyframes fxShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(7px);} 60%{transform:translateX(-5px);} 80%{transform:translateX(5px);} }
+  .fx-shake{ animation: fxShake .32s ease; }
+  .fx-flash-el{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0; animation: fxFlashAnim .26s ease; }
+  @keyframes fxFlashAnim{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .fx-pop{ position:fixed; transform:translate(-50%,-50%); font-family:'JetBrains Mono',monospace; font-weight:900; pointer-events:none; z-index:9999; animation: fxPopAnim .75s ease forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  @keyframes fxPopAnim{ 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 18%{transform:translate(-50%,-65%) scale(1.2); opacity:1;} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+  button{ transition: transform .08s ease; }
+  button:active{ transform:scale(0.93); }
+  @media (prefers-reduced-motion: reduce){ .fx-shake, .fx-flash-el, .fx-pop{ animation:none !important; } }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← 게임 목록으로</a>
+  <header>
+    <h1 data-i18n="title">2026북중미월드컵</h1>
+    <p data-i18n="subtitle">내 나라를 고르고, 세계랭킹 1~5위와 결승전을 치러보세요</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷</button>
+    <button class="lang-btn" data-lang="en">🇺🇸</button>
+    <button class="lang-btn" data-lang="es">🇪🇸</button>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div id="flagPhase">
+    <div class="flag-hint" data-i18n="flag_hint">🇰🇷 내가 응원할 나라를 골라주세요</div>
+    <div class="flag-grid" id="flagGrid"></div>
+  </div>
+
+  <div id="introPhase">
+    <div class="vs-card">
+      <div class="vs-row">
+        <div class="vs-team"><div class="fl" id="introMyFlag">🇰🇷</div><div class="nm" id="introMyName">대한민국</div></div>
+        <div class="vs-mid">VS</div>
+        <div class="vs-team"><div class="fl" id="introOppFlag">🇦🇷</div><div class="nm" id="introOppName">아르헨티나</div></div>
+      </div>
+      <div class="hint" style="margin-top:14px;" id="introHint"><span data-i18n="intro_hint_pre">세계랭킹</span> <b id="introOppRank">1</b><span data-i18n="intro_hint_post">위와의 월드컵 결승전!</span><br><span data-i18n="intro_hint2">5번씩 번갈아 슛과 선방을 겨뤄요.</span></div>
+    </div>
+    <button class="equip-btn" id="startMatchBtn" data-i18n="btn_start_match">⚽ 결승전 시작!</button>
+  </div>
+
+  <div id="matchPhase">
+    <div class="score-row">
+      <div class="score-team"><div class="fl" id="myFlag">🇰🇷</div><div class="sc" id="myScore">0</div></div>
+      <div class="score-mid">
+        <div id="roundLabel">1라운드</div>
+        <div class="kick-dots" id="myDots"></div>
+        <div class="kick-dots" id="oppDots"></div>
+      </div>
+      <div class="score-team"><div class="fl" id="oppFlag">🇦🇷</div><div class="sc" id="oppScore">0</div></div>
+    </div>
+
+    <div class="phase-badge" id="phaseBadge">⚽ 내 슛 차례!</div>
+
+    <div class="goal-wrap">
+      <div class="goal-net" id="goalNet">
+        <div class="zone" data-zone="0"><span class="ball" id="ball0">⚽</span></div>
+        <div class="zone" data-zone="1"><span class="ball" id="ball1">⚽</span></div>
+        <div class="zone" data-zone="2"><span class="ball" id="ball2">⚽</span></div>
+        <div class="keeper" id="keeper">🧤</div>
+      </div>
+    </div>
+
+    <div class="result-banner" id="resultBanner">&nbsp;</div>
+    <div class="hint">👆 왼쪽 · 가운데 · 오른쪽 중 한 곳을 탭하세요</div>
+  </div>
+
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <div style="margin-top:4px;"><p style="text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;">🎮 다른 게임도 해보세요</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="golf.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">⛳<br><span style="font-size:11.5px;">골프왕 챌린지</span></a><a href="blocks.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">🧱<br><span style="font-size:11.5px;">블록 챌린지</span></a><a href="minesweeper.html" style="flex:1;min-width:90px;text-align:center;background:rgba(245,240,234,0.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-decoration:none;color:var(--ink);font-size:12px;">💣<br><span style="font-size:11.5px;">지뢰찾기</span></a></div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="modalEmoji">🏆</div>
+    <h2 id="modalTitle">우승!</h2>
+    <div class="result-line" id="modalScore">최종 스코어 0 : 0</div>
+    <button class="btn-retry" id="retryBtn" data-i18n="btn_retry">다시 하기</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SFX = (function(){
+    let ctx;
+    function ac(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+    function tone(freq, duration, type, gainVal, delay){
+      try{
+        delay = delay||0;
+        const c = ac();
+        const t0 = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(t0); osc.stop(t0+duration+0.02);
+      }catch(e){}
+    }
+    return {
+      click(){ tone(440, 0.06, 'square', 0.07); },
+      correct(){ tone(660,0.09,'sine',0.11); tone(880,0.12,'sine',0.11,0.08); },
+      wrong(){ tone(180,0.18,'sawtooth',0.11); },
+      win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.16,'sine',0.12,i*0.09)); },
+      lose(){ tone(300,0.14,'sawtooth',0.11); tone(200,0.22,'sawtooth',0.11,0.12); },
+      pop(){ tone(700,0.05,'triangle',0.08); }
+    };
+  })();
+
+  const FX = (function(){
+    function shake(){
+      const el = document.querySelector('.wrap');
+      if(!el) return;
+      el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake');
+    }
+    function flash(color){
+      const f = document.createElement('div');
+      f.className = 'fx-flash-el';
+      f.style.background = color || 'rgba(45,212,191,0.28)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(), 280);
+    }
+    function vibrate(pattern){
+      try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+    }
+    function popText(text, x, y, color){
+      const p = document.createElement('div');
+      p.className = 'fx-pop';
+      p.textContent = text;
+      p.style.left = (x!=null ? x+'px' : '50%');
+      p.style.top = (y!=null ? y+'px' : '45%');
+      p.style.fontSize = '22px';
+      p.style.color = color || 'var(--amber)';
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 760);
+    }
+    return { shake, flash, vibrate, popText };
+  })();
+
+  // 2026 북중미 월드컵 본선 진출 48개국 전체 (12개 조 확정 기준)
+  const COUNTRY_NAMES = {
+    '멕시코':{en:'Mexico', es:'México'}, '남아프리카공화국':{en:'South Africa', es:'Sudáfrica'},
+    '대한민국':{en:'South Korea', es:'Corea del Sur'}, '체코':{en:'Czechia', es:'Chequia'},
+    '캐나다':{en:'Canada', es:'Canadá'}, '보스니아 헤르체고비나':{en:'Bosnia and Herzegovina', es:'Bosnia y Herzegovina'},
+    '카타르':{en:'Qatar', es:'Catar'}, '스위스':{en:'Switzerland', es:'Suiza'},
+    '브라질':{en:'Brazil', es:'Brasil'}, '모로코':{en:'Morocco', es:'Marruecos'},
+    '아이티':{en:'Haiti', es:'Haití'}, '스코틀랜드':{en:'Scotland', es:'Escocia'},
+    '미국':{en:'United States', es:'Estados Unidos'}, '파라과이':{en:'Paraguay', es:'Paraguay'},
+    '호주':{en:'Australia', es:'Australia'}, '튀르키예':{en:'Turkey', es:'Turquía'},
+    '독일':{en:'Germany', es:'Alemania'}, '퀴라소':{en:'Curaçao', es:'Curazao'},
+    '코트디부아르':{en:'Ivory Coast', es:'Costa de Marfil'}, '에콰도르':{en:'Ecuador', es:'Ecuador'},
+    '네덜란드':{en:'Netherlands', es:'Países Bajos'}, '일본':{en:'Japan', es:'Japón'},
+    '스웨덴':{en:'Sweden', es:'Suecia'}, '튀니지':{en:'Tunisia', es:'Túnez'},
+    '벨기에':{en:'Belgium', es:'Bélgica'}, '이집트':{en:'Egypt', es:'Egipto'},
+    '이란':{en:'Iran', es:'Irán'}, '뉴질랜드':{en:'New Zealand', es:'Nueva Zelanda'},
+    '스페인':{en:'Spain', es:'España'}, '카보베르데':{en:'Cape Verde', es:'Cabo Verde'},
+    '사우디아라비아':{en:'Saudi Arabia', es:'Arabia Saudita'}, '우루과이':{en:'Uruguay', es:'Uruguay'},
+    '프랑스':{en:'France', es:'Francia'}, '세네갈':{en:'Senegal', es:'Senegal'},
+    '이라크':{en:'Iraq', es:'Irak'}, '노르웨이':{en:'Norway', es:'Noruega'},
+    '아르헨티나':{en:'Argentina', es:'Argentina'}, '알제리':{en:'Algeria', es:'Argelia'},
+    '오스트리아':{en:'Austria', es:'Austria'}, '요르단':{en:'Jordan', es:'Jordania'},
+    '포르투갈':{en:'Portugal', es:'Portugal'}, 'DR콩고':{en:'DR Congo', es:'RD Congo'},
+    '우즈베키스탄':{en:'Uzbekistan', es:'Uzbekistán'}, '콜롬비아':{en:'Colombia', es:'Colombia'},
+    '잉글랜드':{en:'England', es:'Inglaterra'}, '크로아티아':{en:'Croatia', es:'Croacia'},
+    '가나':{en:'Ghana', es:'Ghana'}, '파나마':{en:'Panama', es:'Panamá'},
+  };
+  function countryName(koName){
+    const lang = localStorage.getItem('norixa_lang') || 'ko';
+    if(lang === 'ko') return koName;
+    const entry = COUNTRY_NAMES[koName];
+    return entry ? (entry[lang] || koName) : koName;
+  }
+
+  const LANG = {
+    ko: {
+      title:'2026북중미월드컵', subtitle:'내 나라를 고르고, 세계랭킹 1~5위와 결승전을 치러보세요',
+      flag_hint:'🇰🇷 내가 응원할 나라를 골라주세요',
+      intro_hint_pre:'세계랭킹', intro_hint_post:'위와의 월드컵 결승전!', intro_hint2:'5번씩 번갈아 슛과 선방을 겨뤄요.',
+      btn_start_match:'⚽ 결승전 시작!', btn_retry:'다시 하기',
+      phase_shoot:'⚽ 내 슛 차례!', phase_save:'🧤 골키퍼! 상대 슛을 막으세요',
+      banner_goal:'골! ⚽', banner_blocked:'막혔어요! 🧤', banner_saved:'선방! 🧤', banner_conceded:'실점...',
+      round_label:(r,total)=>`${r}라운드 / ${total}`, sudden_death_label:(n)=>`연장 ${n}차`,
+      modal_win_title:(nm)=>`${nm} 우승!`, modal_lose_title:(nm)=>`${nm}의 우승`,
+      modal_score:(a,b)=>`최종 스코어 ${a} : ${b}`,
+    },
+    en: {
+      title:'2026 World Cup', subtitle:'Pick your country and face a top-5 ranked team in the final',
+      flag_hint:'🇰🇷 Pick the country you want to root for',
+      intro_hint_pre:'World Cup final vs the #', intro_hint_post:'ranked team!', intro_hint2:'Take turns shooting and defending, 5 rounds each.',
+      btn_start_match:'⚽ Start the Final!', btn_retry:'Try Again',
+      phase_shoot:'⚽ Your shot!', phase_save:'🧤 Goalkeeper! Save their shot',
+      banner_goal:'Goal! ⚽', banner_blocked:'Blocked! 🧤', banner_saved:'Saved! 🧤', banner_conceded:'Conceded...',
+      round_label:(r,total)=>`Round ${r} / ${total}`, sudden_death_label:(n)=>`Sudden Death ${n}`,
+      modal_win_title:(nm)=>`${nm} wins!`, modal_lose_title:(nm)=>`${nm} wins`,
+      modal_score:(a,b)=>`Final score ${a} : ${b}`,
+    },
+    es: {
+      title:'Mundial 2026', subtitle:'Elige tu país y enfréntate a un equipo del top-5 en la final',
+      flag_hint:'🇰🇷 Elige el país que quieres alentar',
+      intro_hint_pre:'¡Final del Mundial contra el equipo N.º', intro_hint_post:'del ranking!', intro_hint2:'Turnos de tiro y defensa, 5 rondas cada uno.',
+      btn_start_match:'⚽ ¡Empezar la final!', btn_retry:'Reintentar',
+      phase_shoot:'⚽ ¡Tu turno de tirar!', phase_save:'🧤 ¡Portero! Ataja el tiro',
+      banner_goal:'¡Gol! ⚽', banner_blocked:'¡Bloqueado! 🧤', banner_saved:'¡Atajada! 🧤', banner_conceded:'Gol en contra...',
+      round_label:(r,total)=>`Ronda ${r} / ${total}`, sudden_death_label:(n)=>`Muerte súbita ${n}`,
+      modal_win_title:(nm)=>`¡${nm} campeón!`, modal_lose_title:(nm)=>`${nm} es el campeón`,
+      modal_score:(a,b)=>`Marcador final ${a} : ${b}`,
+    }
+  };
+  function currentLang(){ return localStorage.getItem('norixa_lang') || 'ko'; }
+  function t(key, ...args){
+    const dict = LANG[currentLang()] || LANG.ko;
+    const val = dict[key];
+    if(typeof val === 'function') return val(...args);
+    return val !== undefined ? val : (LANG.ko[key] || key);
+  }
+  function applyLang(){
+    const lang = currentLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === lang); });
+    if(flagPhase.style.display !== 'none') renderFlagGrid();
+    if(myTeam && introPhase.style.display !== 'none'){
+      document.getElementById('introMyName').textContent = countryName(myTeam.nm);
+      document.getElementById('introOppName').textContent = countryName(oppTeam[1]);
+    }
+    if(matchPhase.style.display !== 'none' && round){
+      updateScoreUI();
+      if(!over) document.getElementById('phaseBadge').textContent = turn === 'shoot' ? t('phase_shoot') : t('phase_save');
+    }
+    if(lastModal){
+      document.getElementById('modalTitle').textContent = lastModal.won
+        ? t('modal_win_title', countryName(myTeam.nm))
+        : t('modal_lose_title', countryName(oppTeam[1]));
+      document.getElementById('modalScore').textContent = t('modal_score', lastModal.myScore, lastModal.oppScore);
+    }
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+
+  const FLAG_CHOICES = [
+    // A조
+    ['🇲🇽','멕시코'], ['🇿🇦','남아프리카공화국'], ['🇰🇷','대한민국'], ['🇨🇿','체코'],
+    // B조
+    ['🇨🇦','캐나다'], ['🇧🇦','보스니아 헤르체고비나'], ['🇶🇦','카타르'], ['🇨🇭','스위스'],
+    // C조
+    ['🇧🇷','브라질'], ['🇲🇦','모로코'], ['🇭🇹','아이티'], ['🏴','스코틀랜드'],
+    // D조
+    ['🇺🇸','미국'], ['🇵🇾','파라과이'], ['🇦🇺','호주'], ['🇹🇷','튀르키예'],
+    // E조
+    ['🇩🇪','독일'], ['🇨🇼','퀴라소'], ['🇨🇮','코트디부아르'], ['🇪🇨','에콰도르'],
+    // F조
+    ['🇳🇱','네덜란드'], ['🇯🇵','일본'], ['🇸🇪','스웨덴'], ['🇹🇳','튀니지'],
+    // G조
+    ['🇧🇪','벨기에'], ['🇪🇬','이집트'], ['🇮🇷','이란'], ['🇳🇿','뉴질랜드'],
+    // H조
+    ['🇪🇸','스페인'], ['🇨🇻','카보베르데'], ['🇸🇦','사우디아라비아'], ['🇺🇾','우루과이'],
+    // I조
+    ['🇫🇷','프랑스'], ['🇸🇳','세네갈'], ['🇮🇶','이라크'], ['🇳🇴','노르웨이'],
+    // J조
+    ['🇦🇷','아르헨티나'], ['🇩🇿','알제리'], ['🇦🇹','오스트리아'], ['🇯🇴','요르단'],
+    // K조
+    ['🇵🇹','포르투갈'], ['🇨🇩','DR콩고'], ['🇺🇿','우즈베키스탄'], ['🇨🇴','콜롬비아'],
+    // L조
+    ['🏴','잉글랜드'], ['🇭🇷','크로아티아'], ['🇬🇭','가나'], ['🇵🇦','파나마'],
+  ];
+  // 현재 FIFA 세계랭킹 1~5위 (랭킹은 자주 바뀌니 참고용이에요)
+  const TOP5 = [
+    ['🇦🇷','아르헨티나', 1], ['🇪🇸','스페인', 2], ['🇫🇷','프랑스', 3],
+    ['🏴','잉글랜드', 4], ['🇵🇹','포르투갈', 5],
+  ];
+
+  const ZONE_NAMES = ['왼쪽','가운데','오른쪽'];
+  const TOTAL_ROUNDS = 5;
+
+  const flagGrid = document.getElementById('flagGrid');
+  const introPhase = document.getElementById('introPhase');
+  const flagPhase = document.getElementById('flagPhase');
+  const matchPhase = document.getElementById('matchPhase');
+  const overlay = document.getElementById('overlay');
+
+  let myTeam, oppTeam;
+  let round, myKicks, oppKicks, myScore, oppScore, turn, over, busy;
+  let lastModal = null;
+
+  function renderFlagGrid(){
+    flagGrid.innerHTML = '';
+    FLAG_CHOICES.forEach(([fl,nm]) => {
+      const btn = document.createElement('button');
+      btn.className = 'flag-btn';
+      btn.innerHTML = '<span class="fl">'+fl+'</span><span class="nm">'+countryName(nm)+'</span>';
+      btn.addEventListener('click', () => chooseFlag(fl, nm));
+      flagGrid.appendChild(btn);
+    });
+  }
+
+  function chooseFlag(fl, nm){
+    SFX.click();
+    myTeam = { fl, nm };
+    const pool = TOP5.filter(t => t[1] !== nm);
+    oppTeam = pool[Math.floor(Math.random()*pool.length)];
+    document.getElementById('introMyFlag').textContent = fl;
+    document.getElementById('introMyName').textContent = countryName(nm);
+    document.getElementById('introOppFlag').textContent = oppTeam[0];
+    document.getElementById('introOppName').textContent = countryName(oppTeam[1]);
+    document.getElementById('introOppRank').textContent = oppTeam[2];
+    flagPhase.style.display = 'none';
+    introPhase.style.display = 'flex';
+  }
+
+  document.getElementById('startMatchBtn').addEventListener('click', () => {
+    SFX.click();
+    introPhase.style.display = 'none';
+    matchPhase.style.display = 'flex';
+    document.getElementById('myFlag').textContent = myTeam.fl;
+    document.getElementById('oppFlag').textContent = oppTeam[0];
+    startMatch();
+  });
+
+  function startMatch(){
+    round = 1; myKicks = []; oppKicks = []; myScore = 0; oppScore = 0;
+    turn = 'shoot'; over = false; busy = false;
+    updateScoreUI();
+    setPhase('shoot');
+  }
+
+  function updateScoreUI(){
+    document.getElementById('myScore').textContent = myScore;
+    document.getElementById('oppScore').textContent = oppScore;
+    const label = round <= TOTAL_ROUNDS ? t('round_label', round, TOTAL_ROUNDS) : t('sudden_death_label', round-TOTAL_ROUNDS);
+    document.getElementById('roundLabel').textContent = label;
+    document.getElementById('myDots').textContent = myKicks.map(k => k ? '⚽' : '❌').join(' ');
+    document.getElementById('oppDots').textContent = oppKicks.map(k => k ? '⚽' : '❌').join(' ');
+  }
+
+  function setPhase(p){
+    turn = p;
+    busy = false;
+    document.getElementById('phaseBadge').textContent = p === 'shoot' ? t('phase_shoot') : t('phase_save');
+    document.getElementById('resultBanner').innerHTML = '&nbsp;';
+    document.getElementById('keeper').style.left = '33.33%';
+    [0,1,2].forEach(z => { document.getElementById('ball'+z).style.opacity = 0; });
+  }
+
+  function onZoneTap(zone){
+    if(over || busy) return;
+    busy = true;
+    if(turn === 'shoot') doShoot(zone); else doSave(zone);
+  }
+
+  function doShoot(zone){
+    const keeperZone = weightedRandomZone();
+    animateKeeper(keeperZone);
+    const ballEl = document.getElementById('ball'+zone);
+    ballEl.style.opacity = 1;
+
+    let scored;
+    if(keeperZone !== zone){
+      scored = true;
+    } else {
+      scored = Math.random() < 0.3; // even a guessed-right keeper sometimes fails to hold it
+    }
+
+    setTimeout(() => {
+      myKicks.push(scored);
+      if(scored){ myScore++; SFX.win(); FX.flash('rgba(45,212,191,0.28)'); FX.vibrate([30,25,60]); showBanner(t('banner_goal'), '#2DD4BF'); }
+      else { SFX.wrong(); FX.shake(); showBanner(t('banner_blocked'), '#FF6B4A'); }
+      updateScoreUI();
+      afterKick();
+    }, 500);
+  }
+
+  function doSave(zone){
+    const shotZone = weightedRandomZone();
+    const ballEl = document.getElementById('ball'+shotZone);
+    ballEl.style.opacity = 1;
+    animateKeeper(zone);
+
+    let saved;
+    if(zone === shotZone){
+      saved = Math.random() < 0.75; // diving the right way still isn't a guaranteed save
+    } else {
+      saved = false;
+    }
+
+    setTimeout(() => {
+      oppKicks.push(!saved);
+      if(saved){ SFX.correct(); FX.flash('rgba(255,194,75,0.28)'); FX.vibrate(20); showBanner(t('banner_saved'), '#FFC24B'); }
+      else { oppScore++; SFX.lose(); FX.shake(); showBanner(t('banner_conceded'), '#FF6B4A'); }
+      updateScoreUI();
+      afterKick();
+    }, 500);
+  }
+
+  function weightedRandomZone(){
+    // slight bias away from dead-center, like real shootouts
+    const r = Math.random();
+    if(r < 0.4) return 0;
+    if(r < 0.55) return 1;
+    return 2;
+  }
+
+  function animateKeeper(zone){
+    document.getElementById('keeper').style.left = (zone*33.33) + '%';
+  }
+
+  function showBanner(text, color){
+    const el = document.getElementById('resultBanner');
+    el.textContent = text;
+    el.style.color = color;
+  }
+
+  function afterKick(){
+    setTimeout(() => {
+      if(checkMatchOver()) return;
+      if(turn === 'shoot'){
+        setPhase('save');
+      } else {
+        round++;
+        setPhase('shoot');
+      }
+    }, 900);
+  }
+
+  function checkMatchOver(){
+    // 두 팀이 이번 라운드 킥을 똑같이 마쳤을 때만 판정해요 (한쪽만 찬 상태에서는 절대 끝나지 않음)
+    if(myKicks.length !== oppKicks.length) return false;
+    if(myKicks.length < TOTAL_ROUNDS) return false; // 정규 5라운드가 아직 안 끝남
+    if(myScore !== oppScore){
+      endMatch(myScore > oppScore);
+      return true;
+    }
+    return false; // 동점이면 연장(서든데스)으로 계속
+  }
+
+  function endMatch(won){
+    over = true;
+    lastModal = { won, myScore, oppScore };
+    if(won){
+      const wins = parseInt(localStorage.getItem('worldcup_wins') || '0', 10) + 1;
+      localStorage.setItem('worldcup_wins', wins);
+      SFX.win(); FX.flash('rgba(255,194,75,0.35)');
+      document.getElementById('modalEmoji').textContent = '🏆';
+      document.getElementById('modalTitle').textContent = t('modal_win_title', countryName(myTeam.nm));
+    } else {
+      SFX.lose(); FX.shake();
+      document.getElementById('modalEmoji').textContent = '😢';
+      document.getElementById('modalTitle').textContent = t('modal_lose_title', countryName(oppTeam[1]));
+    }
+    document.getElementById('modalScore').textContent = t('modal_score', myScore, oppScore);
+    overlay.classList.add('show');
+  }
+
+  document.querySelectorAll('.zone').forEach(z => {
+    z.addEventListener('click', () => onZoneTap(parseInt(z.dataset.zone,10)));
+  });
+
+  document.getElementById('retryBtn').addEventListener('click', () => {
+    SFX.click();
+    overlay.classList.remove('show');
+    matchPhase.style.display = 'none';
+    introPhase.style.display = 'none';
+    flagPhase.style.display = 'flex';
+  });
+
+  renderFlagGrid();
+  applyLang();
+})();
+</script>
+</body>
+</html>

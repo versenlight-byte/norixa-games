@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Norixa - 1~3분 미니게임 모음</title>
+<meta name="google-site-verification" content="TS85KiwP1vykzFYAmztLI7epu03x22MhnJfTsm-VPwI" />
+<meta name="google-site-verification" content="PPb3a-INvdPnVT27MRilWlmtls04LeX-wUTH3sogtWQ" />
+<meta name="description" content="심심할 때 한 판씩, 1~3분이면 끝나는 무료 미니게임 모음. 숫자 맞추기, 반응속도, 2048, 카드 짝맞추기.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#120A22">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Norixa">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#120A22; --card:#241640; --card-hi:#2E1B52;
+    --ink:#F5F0EA; --muted:#A79BC4;
+    --coral:#FF6B4A; --teal:#2DD4BF; --amber:#FFC24B;
+    --line: rgba(245,240,234,0.10);
+    --shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    min-height:100dvh;
+    background: radial-gradient(1200px 600px at 50% -10%, #35205C 0%, transparent 60%), var(--bg-deep);
+    color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(18px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  }
+  .wrap{ width:100%; max-width:460px; display:flex; flex-direction:column; gap:16px; }
+  header{ text-align:center; padding: 10px 0 4px; }
+  h1{
+    font-family:'Do Hyeon', sans-serif; font-size:32px; margin:0; letter-spacing:1px;
+    background: linear-gradient(90deg, var(--teal), var(--amber) 55%, var(--coral));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:13.5px; }
+
+  .ad-slot{
+    width:100%; min-height:60px; border:1px dashed rgba(245,240,234,0.22);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    color:rgba(245,240,234,0.35); font-size:12px; background:rgba(245,240,234,0.03);
+  }
+
+  .game-grid{ display:grid; grid-template-columns:1fr; gap:12px; }
+  .game-card{
+    display:flex; align-items:center; gap:14px; position:relative;
+    background: linear-gradient(180deg, var(--card-hi), var(--card));
+    border:1px solid var(--line); border-radius:18px; padding:16px;
+    text-decoration:none; color:var(--ink);
+    box-shadow: var(--shadow);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    opacity:0; animation: cardIn .4s ease forwards;
+  }
+  .game-card:nth-child(1){ animation-delay: .02s; } .game-card:nth-child(2){ animation-delay: .06s; }
+  .game-card:nth-child(3){ animation-delay: .10s; } .game-card:nth-child(4){ animation-delay: .14s; }
+  .game-card:nth-child(5){ animation-delay: .18s; } .game-card:nth-child(6){ animation-delay: .22s; }
+  .game-card:nth-child(7){ animation-delay: .26s; } .game-card:nth-child(8){ animation-delay: .30s; }
+  .game-card:nth-child(9){ animation-delay: .34s; } .game-card:nth-child(10){ animation-delay: .38s; }
+  .game-card:nth-child(11){ animation-delay: .42s; } .game-card:nth-child(12){ animation-delay: .46s; }
+  .game-card:nth-child(13){ animation-delay: .50s; }
+  .game-card:nth-child(14){ animation-delay: .54s; }
+  .game-card:nth-child(15){ animation-delay: .58s; }
+  .game-card:nth-child(16){ animation-delay: .62s; }
+  .game-card:nth-child(17){ animation-delay: .66s; }
+  .game-card:nth-child(18){ animation-delay: .70s; }
+  .game-card:nth-child(19){ animation-delay: .74s; }
+  .game-card:nth-child(20){ animation-delay: .78s; }
+  @keyframes cardIn{ 0%{ opacity:0; transform:translateY(10px); } 100%{ opacity:1; transform:translateY(0); } }
+  .game-card:hover{ transform: translateY(-3px); box-shadow: 0 24px 55px rgba(0,0,0,0.5); border-color: rgba(45,212,191,0.35); }
+  .game-card:hover .g-icon{ transform: scale(1.08) rotate(-4deg); }
+  .game-card:active{ transform: scale(0.97); }
+  .lang-row{ display:flex; gap:6px; }
+  .lang-btn{
+    flex:1; padding:9px 4px; border-radius:12px; border:1px solid var(--line);
+    background: rgba(245,240,234,0.05); color:var(--muted); font-size:12px; font-weight:700;
+    font-family:'Noto Sans KR', sans-serif; cursor:pointer;
+  }
+  .lang-btn.active{ background: linear-gradient(135deg, var(--teal), var(--amber)); color:#1B1030; border-color:transparent; }
+
+  .g-badge{
+    position:absolute; top:-7px; right:12px; font-size:10px; font-weight:900;
+    padding:3px 8px; border-radius:8px; font-family:'Noto Sans KR', sans-serif;
+    letter-spacing:0.3px; box-shadow:0 3px 8px rgba(0,0,0,0.35);
+  }
+  .g-badge.new{ background: linear-gradient(135deg, var(--coral), var(--amber)); color:#1B1030; }
+  .g-badge.hot{ background: linear-gradient(135deg, var(--teal), #1f9c8e); color:#0d2b28; }
+  .g-icon{
+    flex:0 0 52px; height:52px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; transition: transform .2s ease;
+  }
+  .g-icon.up{ background: linear-gradient(135deg, var(--teal), var(--amber)); }
+  .g-icon.click{ background: linear-gradient(135deg, var(--coral), var(--amber)); }
+  .g-icon.puzzle{ background: linear-gradient(135deg, #8B7CF6, var(--teal)); }
+  .g-icon.memory{ background: linear-gradient(135deg, var(--amber), var(--coral)); }
+  .g-icon.mono{ background: linear-gradient(135deg, #6b6b6b, #dcdcdc); }
+  .g-icon.mine{ background: linear-gradient(135deg, var(--coral), #FF9770); }
+  .g-icon.armor{ background: linear-gradient(135deg, var(--amber), var(--coral)); }
+  .g-icon.colorsort{ background: linear-gradient(135deg, #60A5FA, var(--teal)); }
+  .g-icon.blockblast{ background: linear-gradient(135deg, var(--teal), #8B7CF6); }
+  .g-icon.batting{ background: linear-gradient(135deg, var(--coral), var(--amber)); }
+  .g-icon.basketball{ background: linear-gradient(135deg, var(--coral), #F472B6); }
+  .g-icon.worldcup{ background: linear-gradient(135deg, var(--teal), var(--amber)); }
+  .g-icon.golf{ background: linear-gradient(135deg, #22C55E, var(--teal)); }
+  .g-icon.pingpong{ background: linear-gradient(135deg, var(--amber), var(--coral)); }
+  .g-info{ flex:1; min-width:0; }
+  .g-info b{ font-family:'Do Hyeon', sans-serif; font-size:18px; display:block; }
+  .g-info span{ font-size:12.5px; color:var(--muted); }
+  .g-time{
+    flex:0 0 auto; font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--muted); background:rgba(245,240,234,0.06); padding:4px 8px; border-radius:8px;
+  }
+  @media (prefers-reduced-motion: reduce){ .game-card{ animation:none; opacity:1; } }
+
+  footer{
+    display:flex; justify-content:center; gap:18px; flex-wrap:wrap;
+    margin-top:6px; padding-top:14px; border-top:1px solid var(--line);
+  }
+  footer a{ color:var(--muted); font-size:12.5px; text-decoration:none; }
+  footer a:hover{ color:var(--ink); }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4196209515730511"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo-header.png" alt="Norixa" style="max-width:240px; width:70%; height:auto; margin:0 auto; display:block;">
+    <p data-i18n="site_tagline">1~3분이면 끝나는 무료 미니게임 모음</p>
+  </header>
+
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn" data-lang="ko">🇰🇷 한국어</button>
+    <button class="lang-btn" data-lang="en">🇺🇸 English</button>
+    <button class="lang-btn" data-lang="es">🇪🇸 Español</button>
+  </div>
+
+  <!-- 광고 영역: 메인 상단 -->
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <button id="installBtn" style="display:none; width:100%; padding:12px; border:none; border-radius:12px; background:linear-gradient(90deg,var(--teal),var(--amber)); color:#1B1035; font-family:'Do Hyeon',sans-serif; font-size:15px; letter-spacing:0.5px;">
+    <span data-i18n="install_btn">📲 홈 화면에 추가하고 바로 플레이하기</span>
+  </button>
+
+  <div class="game-grid">
+    <a class="game-card" href="games/updown.html">
+      <div class="g-icon up">🎯</div>
+      <div class="g-info"><b data-i18n="updown_name">업다운 챌린지</b><span data-i18n="updown_desc">1~100 숫자 맞추기 · 게이지로 힌트 확인</span></div>
+      <div class="g-time" data-i18n="updown_time">~90초</div>
+    </a>
+    <a class="game-card" href="games/click.html">
+      <span class="g-badge hot" data-i18n="badge_hot">인기</span>
+      <div class="g-icon click">⚡</div>
+      <div class="g-info"><b data-i18n="click_name">반응속도 테스트</b><span data-i18n="click_desc">신호가 뜨면 최대한 빠르게 탭!</span></div>
+      <div class="g-time" data-i18n="click_time">~1분</div>
+    </a>
+    <a class="game-card" href="games/puzzle.html">
+      <span class="g-badge hot" data-i18n="badge_hot">인기</span>
+      <div class="g-icon puzzle">🧩</div>
+      <div class="g-info"><b data-i18n="puzzle_name">2048</b><span data-i18n="puzzle_desc">같은 숫자 타일을 합쳐 2048을 만들어보세요</span></div>
+      <div class="g-time" data-i18n="puzzle_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/memory.html">
+      <div class="g-icon memory">🃏</div>
+      <div class="g-info"><b data-i18n="memory_name">카드 짝맞추기</b><span data-i18n="memory_desc">같은 그림 카드를 최소 횟수로 찾아보세요</span></div>
+      <div class="g-time" data-i18n="memory_time">~2분</div>
+    </a>
+    <a class="game-card" href="games/blocks.html">
+      <div class="g-icon puzzle">🧱</div>
+      <div class="g-info"><b data-i18n="blocks_name">블록 챌린지</b><span data-i18n="blocks_desc">떨어지는 블록을 쌓아 줄을 없애보세요</span></div>
+      <div class="g-time" data-i18n="blocks_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/breakout.html">
+      <div class="g-icon click">💥</div>
+      <div class="g-info"><b data-i18n="breakout_name">벽돌 깨기</b><span data-i18n="breakout_desc">공을 튕겨서 벽돌을 시원하게 부숴보세요</span></div>
+      <div class="g-time" data-i18n="breakout_time">~2분</div>
+    </a>
+    <a class="game-card" href="games/wordchain.html">
+      <div class="g-icon up">🗣️</div>
+      <div class="g-info"><b>끝말잇기</b><span>AI와 끝말잇기 대결, 15초 안에 입력하세요</span></div>
+      <div class="g-time" data-i18n="archery_time">~2분</div>
+    </a>
+    <a class="game-card" href="games/proverb.html">
+      <div class="g-icon memory">📜</div>
+      <div class="g-info"><b>속담 맞추기</b><span>속담의 뒷부분을 맞히는 사지선다 퀴즈</span></div>
+      <div class="g-time" data-i18n="armor_time">~2분</div>
+    </a>
+    <a class="game-card" href="games/crossword.html">
+      <div class="g-icon puzzle">📝</div>
+      <div class="g-info"><b>십자말풀이</b><span>가로세로 빈칸에 알맞은 낱말 채우기</span></div>
+      <div class="g-time" data-i18n="batting_time">~2분</div>
+    </a>
+    <a class="game-card" href="games/archery.html">
+      <div class="g-icon click">🏹</div>
+      <div class="g-info"><b data-i18n="archery_name">양궁 챌린지</b><span data-i18n="archery_desc">움직이는 과녁에 타이밍 맞춰 화살 쏘기</span></div>
+      <div class="g-time" data-i18n="basketball_time">~2분</div>
+    </a>
+    <a class="game-card" href="games/omok.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon mono">⚫</div>
+      <div class="g-info"><b data-i18n="omok_name">오목</b><span data-i18n="omok_desc">AI를 상대로 먼저 5개를 연결하면 승리</span></div>
+      <div class="g-time" data-i18n="omok_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/minesweeper.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon mine">💣</div>
+      <div class="g-info"><b data-i18n="minesweeper_name">지뢰찾기</b><span data-i18n="minesweeper_desc">지뢰 10개를 피해 모든 칸을 열어보세요</span></div>
+      <div class="g-time" data-i18n="minesweeper_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/armor.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon armor">⚔️</div>
+      <div class="g-info"><b data-i18n="armor_name">전신갑주</b><span data-i18n="armor_desc">갑주 6개를 갖추고 화살 웨이브를 버텨내세요</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/colorsort.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon colorsort">🧴</div>
+      <div class="g-info"><b data-i18n="colorsort_name">컬러 소트 퍼즐</b><span data-i18n="colorsort_desc">병을 탭해서 같은 색끼리 모아보세요</span></div>
+      <div class="g-time" data-i18n="colorsort_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/blockblast.html">
+      <span class="g-badge hot" data-i18n="badge_hot">인기</span>
+      <div class="g-icon blockblast">🟦</div>
+      <div class="g-info"><b data-i18n="blockblast_name">블록 퍼즐</b><span data-i18n="blockblast_desc">블록을 배치해서 줄을 채우면 사라져요</span></div>
+      <div class="g-time" data-i18n="blockblast_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/batting.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon batting">⚾</div>
+      <div class="g-info"><b data-i18n="batting_name">타격왕 챌린지</b><span data-i18n="batting_desc">타이밍 맞춰 스윙해서 홈런을 노려보세요</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/basketball.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon basketball">🏀</div>
+      <div class="g-info"><b data-i18n="basketball_name">슛왕 챌린지</b><span data-i18n="basketball_desc">스와이프로 공을 던져 골대에 넣어보세요</span></div>
+      <div class="g-time">~2분</div>
+    </a>
+    <a class="game-card" href="games/worldcup.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon worldcup">⚽</div>
+      <div class="g-info"><b data-i18n="worldcup_name">2026북중미월드컵</b><span data-i18n="worldcup_desc">내 나라로 세계랭킹 1~5위와 결승전을 치러보세요</span></div>
+      <div class="g-time" data-i18n="worldcup_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/golf.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon golf">⛳</div>
+      <div class="g-info"><b data-i18n="golf_name">골프왕 챌린지</b><span data-i18n="golf_desc">파워·정확도 게이지로 3개 홀을 돌아보세요</span></div>
+      <div class="g-time" data-i18n="golf_time">~3분</div>
+    </a>
+    <a class="game-card" href="games/pingpong.html">
+      <span class="g-badge new">NEW</span>
+      <div class="g-icon pingpong">🏓</div>
+      <div class="g-info"><b data-i18n="pingpong_name">탁구왕 챌린지</b><span data-i18n="pingpong_desc">타이밍 맞춰 리턴! 11점 선취 매치</span></div>
+      <div class="g-time" data-i18n="pingpong_time">~3분</div>
+    </a>
+  </div>
+
+  <!-- 광고 영역: 메인 하단 -->
+  <ins class="adsbygoogle ad-slot"
+       style="display:block"
+       data-ad-client="ca-pub-4196209515730511"
+       data-ad-slot="REPLACE_WITH_AD_SLOT_ID"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <footer>
+    <a href="about.html" data-i18n="footer_about">소개</a>
+    <a href="privacy.html" data-i18n="footer_privacy">개인정보처리방침</a>
+    <a href="contact.html" data-i18n="footer_contact">문의</a>
+  </footer>
+</div>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+  });
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.style.display = 'none';
+  });
+  window.addEventListener('appinstalled', () => {
+    installBtn.style.display = 'none';
+  });
+
+const LANG = {
+  ko: {
+    updown_name:'업다운 챌린지', updown_desc:'1~100 숫자 맞추기 · 게이지로 힌트 확인', updown_time:'~90초',
+    click_name:'반응속도 테스트', click_desc:'신호가 뜨면 최대한 빠르게 탭!', click_time:'~1분',
+    puzzle_name:'2048', puzzle_desc:'같은 숫자 타일을 합쳐 2048을 만들어보세요', puzzle_time:'~3분',
+    memory_name:'카드 짝맞추기', memory_desc:'같은 그림 카드를 최소 횟수로 찾아보세요', memory_time:'~2분',
+    blocks_name:'블록 챌린지', blocks_desc:'떨어지는 블록을 쌓아 줄을 없애보세요', blocks_time:'~3분',
+    breakout_name:'벽돌 깨기', breakout_desc:'공을 튕겨서 벽돌을 시원하게 부숴보세요', breakout_time:'~2분',
+    archery_name:'양궁 챌린지', archery_desc:'움직이는 과녁에 타이밍 맞춰 화살 쏘기', archery_time:'~2분',
+    omok_name:'오목', omok_desc:'AI를 상대로 먼저 5개를 연결하면 승리', omok_time:'~3분',
+    minesweeper_name:'지뢰찾기', minesweeper_desc:'지뢰 10개를 피해 모든 칸을 열어보세요', minesweeper_time:'~3분',
+    armor_name:'전신갑주', armor_desc:'갑주 6개를 갖추고 화살 웨이브를 버텨내세요', armor_time:'~2분',
+    colorsort_name:'컬러 소트 퍼즐', colorsort_desc:'병을 탭해서 같은 색끼리 모아보세요', colorsort_time:'~3분',
+    blockblast_name:'블록 퍼즐', blockblast_desc:'블록을 배치해서 줄을 채우면 사라져요', blockblast_time:'~3분',
+    batting_name:'타격왕 챌린지', batting_desc:'타이밍 맞춰 스윙해서 홈런을 노려보세요', batting_time:'~2분',
+    basketball_name:'슛왕 챌린지', basketball_desc:'스와이프로 공을 던져 골대에 넣어보세요', basketball_time:'~2분',
+    worldcup_name:'2026북중미월드컵', worldcup_desc:'내 나라로 세계랭킹 1~5위와 결승전을 치러보세요', worldcup_time:'~3분',
+    golf_name:'골프왕 챌린지', golf_desc:'파워·정확도 게이지로 3개 홀을 돌아보세요', golf_time:'~3분',
+    pingpong_name:'탁구왕 챌린지', pingpong_desc:'타이밍 맞춰 리턴! 11점 선취 매치', pingpong_time:'~3분',
+    site_tagline:'1~3분이면 끝나는 무료 미니게임 모음',
+    install_btn:'📲 홈 화면에 추가하고 바로 플레이하기',
+    badge_hot:'인기',
+    footer_about:'소개',
+    footer_privacy:'개인정보처리방침',
+    footer_contact:'문의',
+  },
+  en: {
+    updown_name:'Up & Down Challenge', updown_desc:'Guess a number 1-100 with hint gauge', updown_time:'~90 sec',
+    click_name:'Reaction Speed Test', click_desc:'Tap as fast as you can when the signal appears!', click_time:'~1 min',
+    puzzle_name:'2048', puzzle_desc:'Merge matching tiles to reach 2048', puzzle_time:'~3 min',
+    memory_name:'Memory Match', memory_desc:'Find matching card pairs in the fewest tries', memory_time:'~2 min',
+    blocks_name:'Block Challenge', blocks_desc:'Stack falling blocks and clear lines', blocks_time:'~3 min',
+    breakout_name:'Breakout', breakout_desc:'Bounce the ball to smash all the bricks', breakout_time:'~2 min',
+    archery_name:'Archery Challenge', archery_desc:'Time your shot at the moving target', archery_time:'~2 min',
+    omok_name:'Gomoku', omok_desc:'Connect five in a row before the AI does', omok_time:'~3 min',
+    minesweeper_name:'Minesweeper', minesweeper_desc:'Clear the board while avoiding 10 mines', minesweeper_time:'~3 min',
+    armor_name:'Armor of God', armor_desc:'Equip 6 pieces of armor and survive the arrow wave', armor_time:'~2 min',
+    colorsort_name:'Color Sort Puzzle', colorsort_desc:'Tap bottles to sort each color together', colorsort_time:'~3 min',
+    blockblast_name:'Block Blast', blockblast_desc:'Place blocks to clear full lines', blockblast_time:'~3 min',
+    batting_name:'Batting King Challenge', batting_desc:'Time your swing for the home run', batting_time:'~2 min',
+    basketball_name:'Shooting King Challenge', basketball_desc:'Swipe to shoot the ball into the hoop', basketball_time:'~2 min',
+    worldcup_name:'2026 World Cup', worldcup_desc:'Pick your country and face a top-5 ranked team in the final', worldcup_time:'~3 min',
+    golf_name:'Golf King Challenge', golf_desc:'Time the power and accuracy gauges over 3 holes', golf_time:'~3 min',
+    pingpong_name:'Ping Pong King Challenge', pingpong_desc:'Time your returns! First to 11 points wins', pingpong_time:'~3 min',
+    site_tagline:'Free mini-games you can finish in 1-3 minutes',
+    install_btn:'📲 Add to Home Screen & Play Instantly',
+    badge_hot:'Hot',
+    footer_about:'About',
+    footer_privacy:'Privacy Policy',
+    footer_contact:'Contact',
+  },
+  es: {
+    updown_name:'Desafío Arriba y Abajo', updown_desc:'Adivina un número del 1 al 100 con pistas', updown_time:'~90 seg',
+    click_name:'Prueba de Reacción', click_desc:'¡Toca lo más rápido posible cuando aparezca la señal!', click_time:'~1 min',
+    puzzle_name:'2048', puzzle_desc:'Combina fichas iguales para llegar a 2048', puzzle_time:'~3 min',
+    memory_name:'Memoria de Cartas', memory_desc:'Encuentra las parejas con el menor número de intentos', memory_time:'~2 min',
+    blocks_name:'Desafío de Bloques', blocks_desc:'Apila los bloques que caen y elimina líneas', blocks_time:'~3 min',
+    breakout_name:'Rompe Ladrillos', breakout_desc:'Rebota la bola para romper todos los ladrillos', breakout_time:'~2 min',
+    archery_name:'Desafío de Tiro con Arco', archery_desc:'Calcula el momento justo para dar en el blanco móvil', archery_time:'~2 min',
+    omok_name:'Gomoku', omok_desc:'Conecta cinco en línea antes que la IA', omok_time:'~3 min',
+    minesweeper_name:'Buscaminas', minesweeper_desc:'Despeja el tablero evitando 10 minas', minesweeper_time:'~3 min',
+    armor_name:'Armadura de Dios', armor_desc:'Equípate con 6 piezas de armadura y resiste la lluvia de flechas', armor_time:'~2 min',
+    colorsort_name:'Puzzle de Colores', colorsort_desc:'Toca las botellas para juntar cada color', colorsort_time:'~3 min',
+    blockblast_name:'Block Blast', blockblast_desc:'Coloca bloques para completar y borrar líneas', blockblast_time:'~3 min',
+    batting_name:'Desafío de Bateo', batting_desc:'Sincroniza tu swing para conseguir un jonrón', batting_time:'~2 min',
+    basketball_name:'Desafío de Tiros', basketball_desc:'Desliza para lanzar la pelota a la canasta', basketball_time:'~2 min',
+    worldcup_name:'Mundial 2026', worldcup_desc:'Elige tu país y enfréntate a un top-5 en la final', worldcup_time:'~3 min',
+    golf_name:'Desafío de Golf', golf_desc:'Sincroniza la potencia y precisión en 3 hoyos', golf_time:'~3 min',
+    pingpong_name:'Desafío de Ping Pong', pingpong_desc:'¡Sincroniza tus devoluciones! Gana quien llegue a 11 puntos', pingpong_time:'~3 min',
+    site_tagline:'Minijuegos gratis para jugar en 1-3 minutos',
+    install_btn:'📲 Añadir a la pantalla de inicio y jugar',
+    badge_hot:'Popular',
+    footer_about:'Acerca de',
+    footer_privacy:'Privacidad',
+    footer_contact:'Contacto',
+  }
+};
+
+  // ---- language switching (shared key: norixa_lang, used across the whole site) ----
+  function applyLang(){
+    const lang = localStorage.getItem('norixa_lang') || 'ko';
+    const dict = LANG[lang] || LANG.ko;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if(dict[key] !== undefined) el.textContent = dict[key];
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    document.documentElement.lang = lang;
+  }
+  document.getElementById('langRow').addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if(!btn) return;
+    localStorage.setItem('norixa_lang', btn.dataset.lang);
+    applyLang();
+  });
+  applyLang();
+</script>
+</body>
+</html>
